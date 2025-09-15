@@ -1,0 +1,36 @@
+# Build Folders
+**/__pycache__/**
+build/
+dest/
+instance/
+node_modules/
+tmp/
+venv/
+.venv/
+
+# CICD Folders & Files
+argocd/
+eks/
+
+# Dot Folders & Files
+.git/
+.github/
+.idea/
+.vscode/
+**/.DS_store
+.coverage
+.gitignore
+*.bak
+*.db
+# Use Docker Secrets: (Recommended)
+#*.env*
+*.log
+*.md
+*.pyc
+*.sqbpro
+
+# Other Folders & Files
+iac/
+scripts/
+Dockerfile*
+Makefile
