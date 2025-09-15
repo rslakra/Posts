@@ -21,8 +21,8 @@ class Role(NamedModel):
     meta_data: Dict[str, Any] | None = None
     permissions: Optional[List["Permission"]] = field(default_factory=list)
 
-    @classmethod
     @model_validator(mode="before")
+    @classmethod
     def preValidator(cls, values: Any) -> Any:
         logger.debug(f"preValidator({values})")
         return super().preValidator(values)

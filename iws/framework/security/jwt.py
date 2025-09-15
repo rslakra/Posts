@@ -12,7 +12,6 @@ from typing import Union, Optional, Any, Dict
 
 import jwt
 import requests
-from lib2to3.btm_utils import tokens
 
 from framework.enums import BaseEnum
 from framework.exception import AuthenticationException, ValidationException
