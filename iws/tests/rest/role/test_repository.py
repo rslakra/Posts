@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from framework.datetime import nowMillis
+from framework.time import timeMillis
 from rest.role.repository import RoleRepository, PermissionRepository
 from rest.role.schema import RoleSchema, PermissionSchema
 from tests.base import AbstractTestCase
@@ -54,7 +54,7 @@ class RoleRepositoryTest(AbstractTestCase):
     def test_create_role(self):
         logger.debug("+test_create_role()")
         # create a role
-        roleName = f"Test-{nowMillis()}"
+        roleName = f"Test-{timeMillis()}"
         role_json = {
             "name": roleName,
             "active": True,
@@ -78,7 +78,7 @@ class RoleRepositoryTest(AbstractTestCase):
         # Basic CRUD operations:
         # "Create", "Read", "Update", "Delete" are often the fundamental permissions for managing data within a system.
 
-        permissionName = f"Read-{nowMillis()}"
+        permissionName = f"Read-{timeMillis()}"
         permission_json = {
             "name": permissionName,
             "description": "Allows read access",
@@ -107,14 +107,14 @@ class RoleRepositoryTest(AbstractTestCase):
     def test_create_role_with_permission(self):
         logger.debug("+test_create_role_with_permission()")
         # Create roles
-        adminRole = RoleSchema(name=f"Admin-{nowMillis()}", active=True, meta_data={"description": "An Admin Role"})
-        editorRole = RoleSchema(name=f"Editor-{nowMillis()}", active=True, meta_data={"description": "An Editor Role"})
+        adminRole = RoleSchema(name=f"Admin-{timeMillis()}", active=True, meta_data={"description": "An Admin Role"})
+        editorRole = RoleSchema(name=f"Editor-{timeMillis()}", active=True, meta_data={"description": "An Editor Role"})
         logger.debug(f"adminRole={adminRole}")
         logger.debug(f"editorRole={editorRole}")
 
         # Create permissions
-        readPermission = PermissionSchema(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
-        writePermission = PermissionSchema(name=f"Write-{nowMillis()}", description="Allows write access", active=True)
+        readPermission = PermissionSchema(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
+        writePermission = PermissionSchema(name=f"Write-{timeMillis()}", description="Allows write access", active=True)
         logger.debug(f"readPermission={readPermission}")
         logger.debug(f"writePermission={writePermission}")
 
@@ -182,12 +182,12 @@ class RoleRepositoryTest(AbstractTestCase):
     def test_assign_permission(self):
         logger.debug("+test_assign_permission()")
         # Create roles
-        adminRole = RoleSchema(name=f"Admin-{nowMillis()}", active=True, meta_data={"description": "An Admin Role"})
+        adminRole = RoleSchema(name=f"Admin-{timeMillis()}", active=True, meta_data={"description": "An Admin Role"})
         logger.debug(f"adminRole={adminRole}")
 
         # Create permissions
-        readPermission = PermissionSchema(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
-        writePermission = PermissionSchema(name=f"Write-{nowMillis()}", description="Allows write access", active=True)
+        readPermission = PermissionSchema(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
+        writePermission = PermissionSchema(name=f"Write-{timeMillis()}", description="Allows write access", active=True)
         logger.debug(f"readPermission={readPermission}")
         logger.debug(f"writePermission={writePermission}")
 

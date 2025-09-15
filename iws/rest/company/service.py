@@ -4,7 +4,7 @@
 import logging
 from typing import List, Optional, Dict, Any
 
-from framework.exception import DuplicateRecordException, ValidationException, RecordNotFoundException
+from framework.exception import DuplicateRecordException, ValidationException, NoRecordFoundException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import BaseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -127,7 +127,7 @@ class CompanyService(AbstractService):
         # self.validate(SchemaOperation.UPDATE, company)
         # check record exists by id
         if not self.existsByFilter({"id": company.id}):
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, f"Company doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, f"Company doesn't exist!")
 
         companySchemas = self.repository.filter({"id": company.id})
         companySchema = companySchemas[0]
@@ -158,6 +158,6 @@ class CompanyService(AbstractService):
         if self.existsByFilter(filter):
             self.repository.delete(filter)
         else:
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, ["Company doesn't exist!"])
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Company doesn't exist!")
 
         logger.debug(f"-delete()")

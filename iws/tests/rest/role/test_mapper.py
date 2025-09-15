@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from framework.datetime import nowMillis
+from framework.time import timeMillis
 from rest.role.mapper import RoleMapper, PermissionMapper, CapabilityMapper
 from rest.role.model import Role, Permission, Capability
 from rest.role.schema import RoleSchema, PermissionSchema, CapabilitySchema
@@ -34,7 +34,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_role_fromSchema(self):
         logger.debug("+test_role_fromSchema()")
         # create a role
-        testRoleSchema = RoleSchema(name=f"TestRole-{nowMillis()}", active=True,
+        testRoleSchema = RoleSchema(name=f"TestRole-{timeMillis()}", active=True,
                                     meta_data={"description": "A TestRole"})
         logger.debug(f"testRoleSchema={testRoleSchema}")
         self.assertIsNotNone(testRoleSchema)
@@ -50,7 +50,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_role_fromModel(self):
         logger.debug("+test_role_fromModel()")
         # create a role
-        testRole = Role(name=f"TestRole-{nowMillis()}", active=True, meta_data={"description": "A TestRole"})
+        testRole = Role(name=f"TestRole-{timeMillis()}", active=True, meta_data={"description": "A TestRole"})
         logger.debug(f"testRole={testRole}")
         self.assertIsNotNone(testRole)
         testRoleSchema = RoleMapper.fromModel(testRole)
@@ -74,7 +74,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_permission_fromSchema(self):
         logger.debug("+test_permission_fromSchema()")
         # create a permission
-        permissionName = f"Read-{nowMillis()}"
+        permissionName = f"Read-{timeMillis()}"
         permission_json = {
             "name": permissionName,
             "active": True,
@@ -96,7 +96,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_permission_fromModel(self):
         logger.debug("+test_permission_fromModel()")
         # create a permission
-        permissionName = f"Read-{nowMillis()}"
+        permissionName = f"Read-{timeMillis()}"
         permission_json = {
             "name": permissionName,
             "active": True,
@@ -118,12 +118,12 @@ class RoleMapperTest(AbstractTestCase):
     def test_role_fromModel_with_permission(self):
         logger.debug("+test_role_fromModel_with_permission()")
         # Create roles
-        readOnlyRole = Role(name=f"ReadOnly-{nowMillis()}", active=True, meta_data={"description": "A ReadOnly Role"})
+        readOnlyRole = Role(name=f"ReadOnly-{timeMillis()}", active=True, meta_data={"description": "A ReadOnly Role"})
         logger.debug(f"readOnlyRole={readOnlyRole}")
         self.assertIsNotNone(readOnlyRole)
 
         # Create permissions
-        readPermission = Permission(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
+        readPermission = Permission(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
         logger.debug(f"readPermission={readPermission}")
 
         # Assign permissions to roles
@@ -159,7 +159,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_capability_fromSchema(self):
         logger.debug("+test_capability_fromSchema()")
         # create a capability
-        capabilityName = f"Create-{nowMillis()}"
+        capabilityName = f"Create-{timeMillis()}"
         capability_json = {
             "name": capabilityName,
             "active": True,
@@ -181,7 +181,7 @@ class RoleMapperTest(AbstractTestCase):
     def test_capability_fromModel(self):
         logger.debug("+test_capability_fromModel()")
         # create a capability
-        capabilityName = f"Create-{nowMillis()}"
+        capabilityName = f"Create-{timeMillis()}"
         capability_json = {
             "name": capabilityName,
             "active": True,

@@ -4,7 +4,7 @@
 import logging
 from typing import List, Optional, Dict, Any
 
-from framework.exception import DuplicateRecordException, ValidationException, RecordNotFoundException
+from framework.exception import DuplicateRecordException, ValidationException, NoRecordFoundException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import BaseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -127,7 +127,7 @@ class ContactService(AbstractService):
         """Updates the contact"""
         logger.debug(f"+update({contact})")
         if not self.existsByFilter({"id": contact.id}):
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
 
         contactSchemas = self.repository.filter({"id": contact.id})
         contactSchema = contactSchemas[0]
@@ -156,6 +156,6 @@ class ContactService(AbstractService):
         if self.existsByFilter(filter):
             self.repository.delete(filter)
         else:
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
 
         logger.debug(f"-delete()")

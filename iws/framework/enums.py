@@ -117,7 +117,6 @@ class AutoUpperCase(BaseEnum):
 
 @unique
 class KeyEnum(AutoUpperCase):
-    SQLALCHEMY = auto()
     APP_ENV = auto()
     DB_TYPE = auto()
     ENV_TYPE = auto()
@@ -205,3 +204,28 @@ class EnvType(BaseEnum):
         key, default and the result are bool."""
         return os.getenv(key, str(default)).lower() in ("yes", "true", "1")
 
+
+@unique
+class DbType(BaseEnum):
+    """Database Type Enum. For readability, add constants in Alphabetical order."""
+    SQLALCHEMY = "sqlite:///"
+    MYSQL = "mysql+asyncmy://"
+
+    @classmethod
+    def dbUri(cls, configs: dict[str, Any] = None) -> str:
+        """Returns DB URI string"""
+        dbType = configs.get(KeyEnum.DB_TYPE.name)
+        if dbType and DbType.SQLALCHEMY == DbType.of_name(dbType):
+            # db_uri = f"sqlite:///{dbName}"
+            dbName = configs.get("DB_NAME")
+            return ''.join([DbType.SQLALCHEMY.value, dbName])
+        elif dbType and DbType.MYSQL == DbType.of_name(dbType):
+            # db_uri = f"mysql+asyncmy://{username}:{password}@{hostname}:{port}/{db_name}"
+            dbHost = configs.get("DB_HOST")
+            dbPort = configs.get("DB_PORT")
+            dbUserName = configs.get("DB_USERNAME")
+            dbPassword = configs.get("DB_PASSWORD")
+            dbName = configs.get("DB_NAME")
+            return f"{DbType.MYSQL.value}{dbUserName}:{dbPassword}@{dbHost}:{dbPort}/{dbName}"
+        else:
+            raise ValueError(f"Unsupported dbType={dbType}!")

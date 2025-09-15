@@ -10,15 +10,17 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from flask import Flask, Blueprint, make_response, request
+from flask import Flask, Blueprint, make_response, current_app, request
 from flask_cors import CORS
 # https://flask.palletsprojects.com/en/3.0.x/deploying/proxy_fix/
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api import bp as api_bp
 from common.config import Config
-from framework.enums import EnvType
-from framework.enums import KeyEnum
+from framework.enums import (
+    EnvType,
+    KeyEnum,
+    DbType)
 from framework.http import HTTPStatus
 from framework.logger import DefaultLogger
 from framework.orm.pydantic.model import ResponseModel
@@ -79,7 +81,8 @@ class WebApp:
         host = self.get_env(self.__HOST)
         port = self.get_env(self.__PORT)
         debug = self.get_env(self.__DEBUG)
-        logger.debug(f"host={host}, port={port}, debug={debug}")
+        with self.app.app_context():
+            current_app.logger.debug(f"host={host}, port={port}, debug={debug}")
 
         # run application with params
         self.app.run(host=host, port=port, debug=debug, load_dotenv=True)
@@ -96,9 +99,6 @@ class WebApp:
         app = Flask(__name__)
         # app = connexion.App(__name__, specification_dir="./")
         # app.add_api("swagger.yml")
-
-        # customize the default response class of your Flask application
-        # app.response_class = JsonResponse
 
         # use custom logger adapter
         app.logger = DefaultLogger(app)
@@ -118,7 +118,8 @@ class WebApp:
                 "DB_NAME": "testPosts.db",
             })
 
-        # logger.debug(f"app.config={app.config}")
+        # with self.app.app_context():
+        #     current_app.logger.debug(f"app.config={app.config}")
 
         # Check CORS Enabled
         if Config.CORS_ENABLED:
@@ -127,14 +128,14 @@ class WebApp:
         # Initialize/Register Flask Extensions/Components, if any
         # if not test_mode:
         connector.init(app)
-        connector.init_db({KeyEnum.DB_TYPE.name: KeyEnum.SQLALCHEMY.name})
+        connector.init_db({KeyEnum.DB_TYPE.name: DbType.SQLALCHEMY.name})
 
         # Initialize/Register Default Error Handlers, if any
 
         @app.errorhandler(404)
         def not_found(error):
             """404 - NotFound Error Handler"""
-            logger.error(f'request={request}, errorClass={type(error)}, error={error}')
+            current_app.logger.error(f'request={request}, errorClass={type(error)}, error={error}')
             return make_response(ResponseModel.jsonResponse(HTTPStatus.NOT_FOUND, message=error.description),
                                  HTTPStatus.NOT_FOUND.statusCode)
             # if isinstance(error, NotFound):
@@ -145,14 +146,14 @@ class WebApp:
         @app.errorhandler(400)
         def bad_request(error):
             """400 - BadRequest Error Handler"""
-            logger.error(f'request={request}, errorClass={type(error)}, error={error}')
+            current_app.logger.error(f'request={request}, errorClass={type(error)}, error={error}')
             return make_response(ResponseModel.jsonResponse(HTTPStatus.BAD_REQUEST, message=error.description),
                                  HTTPStatus.BAD_REQUEST.statusCode)
 
         @app.errorhandler(500)
         def app_error(error):
             """500 - InternalServer Error Handler"""
-            logger.error(f'request={request}, errorClass={type(error)}, error={error}')
+            current_app.logger.error(f'request={request}, errorClass={type(error)}, error={error}')
             return make_response(
                 ResponseModel.jsonResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=error.description),
                 HTTPStatus.INTERNAL_SERVER_ERROR.statusCode)
@@ -194,8 +195,4 @@ class WebApp:
             # app.teardown_request(connector.close_connection())
             pass
 
-        # log application context path
-        # Running on http://127.0.0.1:5000 (Press CTRL+C to quit)
-        logger.debug(
-            f"Running on [http://{self.get_env(self.__HOST)}:{self.get_env(self.__PORT)}] (Press CTRL+C to quit)")
         return app
