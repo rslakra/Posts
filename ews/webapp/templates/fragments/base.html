@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <title>Posts Client - {% block title %}{% endblock title %}</title>
+  <!-- css -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"/>
+
+  <!-- js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='js/menu-actions.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/actions.js') }}"></script>
+</head>
+
+<body>
+  <div class="container">
+    <!-- <h1>Message Board</h1> -->
+    {% include("fragments/_navigation.html") %}
+
+    <section>
+      <header>
+        {% block header %}{% endblock header %}
+      </header>
+      <main>
+        {% block content %}<p>No messages.</p>{% endblock content %}
+      </main>
+    </section>
+  </div>
+
+
+</body>
+
+</html>

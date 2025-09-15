@@ -1,0 +1,19 @@
+{% extends 'fragments/base.html' %}
+
+{% block header %}
+<h2>{% block title %}Contact Us{% endblock title %}</h2>
+{% endblock header %}
+
+{% block content %}
+<h2>Leverage Blueprints</h2>
+<p>
+  As your Flask project grows, you have lots of view functions and other related bits of code that work together.
+  Instead of adding all these directly to a basic app.py file, you can create blueprints that you register in your
+  application factory.
+</p>
+<p>
+  Blueprints are modules that contain related views that you can conveniently import in __init__.py. For example, you’ll
+  have a blueprint that stores the main pages of your project.
+</p>
+
+{% endblock content %}

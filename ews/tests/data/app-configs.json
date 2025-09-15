@@ -1,0 +1,46 @@
+{
+    "headers": {
+        "default": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 12341234123412341234123412341234"
+        },
+        "admin": {
+            "Content-Type": "application/json",
+            "X-Authorization": "Bearer 12341234123412341234123412341234"
+        }
+    },
+    "user_agent": {
+        "iphone": {
+            "platform": "ios",
+            "osVersion": "12.0.0",
+            "deviceType": "mobile/tablet",
+            "deviceId": "iPhone12,0",
+            "product": "posts-iws",
+            "appVersion": "0.0.1"
+        }
+    },
+    "app_config": {
+        "min_supported_version": {
+            "ios": {
+                "app_version": "1.0.0"
+            },
+            "android": {
+                "app_version": "0.1.0"
+            }
+        },
+        "free_calls": {
+            "allowed_calls": 1,
+            "max_call_duration_minutes": 30,
+            "call_history_limit": 5
+        },
+        "payment_test": 1
+    },
+    "SECURITY_CONFIGS": {
+        "ENCRYPTION_CONFIGS": {
+            "ENCRYPTION_KEY": "12341234123412341234123412341234",
+            "ENCRYPTION_NONCE": "123412341234"
+        },
+        "CLIENT_ID_KEY": "CLIENT_ID_KEY",
+        "CLIENT_ID_SECRET": "CLIENT_ID_SECRET"
+    }
+}
