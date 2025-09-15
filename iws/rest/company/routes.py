@@ -154,8 +154,6 @@ def delete(id: int):
         response = ResponseModel(status=HTTPStatus.OK.statusCode, message="Company is successfully deleted.")
     except RecordNotFoundException as ex:
         response = ResponseModel.buildResponseWithException(ex)
-    except RecordNotFoundException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
     except Exception as ex:
         response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
