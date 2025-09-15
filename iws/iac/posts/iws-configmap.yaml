@@ -1,0 +1,11 @@
+# ConfigMap file
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: posts-iws-configmap
+data:
+  db_type: SQLAlchemy
+  db_host: posts-iws-service
+  db_port: "3306"
+  db_name: posts
+  

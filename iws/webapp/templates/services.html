@@ -1,0 +1,23 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+  {% block title %}
+  Services
+  {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+<h2>Work With an Application Factory</h2>
+<p>
+  An application factory in Flask is a design pattern that’s highly beneficial for scaling Flask projects. With an
+  application factory, you can create and configure your Flask project flexibly and efficiently, making it easier to
+  develop, test, and maintain as it grows and evolves.
+</p>
+<p>
+  Instead of having your application’s code at the root level of your __init__.py file, you’ll work with a function that
+  returns your application. To do so, replace the content of __init__.py with the content below:
+</p>
+
+{% endblock content %}

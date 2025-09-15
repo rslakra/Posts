@@ -1,0 +1,89 @@
+<!-- https://www.w3schools.com/howto/howto_website_create_portfolio.asp -->
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<!--<h2>-->
+<!--    {% block title %}-->
+<!--    Blog Posts-->
+<!--    {% endblock title %}-->
+<!--</h2>-->
+
+<!--<a href="{{ url_for('iws.api.v1.posts.create') }}">Add Post</a>-->
+
+{% endblock header %}
+
+
+{% block content %}
+
+  <!-- blog-header -->
+  <div class="header">
+    <h2>Blog Name</h2>
+  </div>
+
+  <!-- row -->
+  <div class="row">
+
+    <!-- left-column -->
+    <div class="left-column">
+
+      {% for post in posts %}
+        <!-- card -->
+        <div class="card">
+            <h2>{{ post["title"] }}</h2>
+            <!-- <aside>Posted by {{ post["author"] }} on {{ post["posted_on"]|strftime }}</aside> -->
+            <aside>Posted by {{ post["author"] }} on {{ post["posted_on"]|strftime('%b %d, %Y at %I:%M%p') }}</aside>
+            <div class="fake-image" style="height:200px;">Image</div>
+            <p>Some text ...<p>
+            <p>{{ post["description"] }}<p>
+        </div>
+      {% endfor %}
+
+      <!-- card -->
+      <div class="card">
+        <h2>TITLE HEADING</h2>
+        <h5>Title description, Dec 7, 2017</h5>
+        <div class="fake-image" style="height:200px;">Image</div>
+        <p>Some text..</p>
+        <p>Sunt in culpa qui officia deserunt mollit anim id est laborum consectetur adipiscing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco.</p>
+      </div>
+
+      <div class="card">
+        <h2>TITLE HEADING</h2>
+        <h5>Title description, Sep 2, 2017</h5>
+        <div class="fake-image" style="height:200px;">Image</div>
+        <p>Some text..</p>
+        <p>Sunt in culpa qui officia deserunt mollit anim id est laborum consectetur adipiscing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco.</p>
+      </div>
+
+    </div>
+
+    <!-- right-column -->
+    <div class="right-column">
+      <!-- card -->
+      <div class="card">
+        <h2>About Me</h2>
+        <div class="fake-image" style="height:100px;">Image</div>
+        <p>Some text about me in culpa qui officia deserunt mollit anim..</p>
+      </div>
+
+      <div class="card">
+        <h3>Popular Post</h3>
+        <div class="fake-image">Image</div><br>
+        <div class="fake-image">Image</div><br>
+        <div class="fake-image">Image</div>
+      </div>
+
+      <div class="card">
+        <h3>Follow Me</h3>
+        <p>Some text..</p>
+      </div>
+
+    </div>
+
+  </div>
+
+{% endblock content %}

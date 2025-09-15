@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+# Part 1
+metadata:
+  name: nginx-service
+# Part 2
+spec: # Deployment Specification
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

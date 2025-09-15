@@ -1,0 +1,62 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+  {% block title %}
+  Contact Us
+  {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+
+<!--https://www.w3schools.com/howto/howto_css_social_login.asp-->
+
+<h2>Leverage Blueprints</h2>
+<p>
+  As your Flask project grows, you have lots of view functions and other related bits of code that work together.
+  Instead of adding all these directly to a basic app.py file, you can create blueprints that you register in your
+  application factory.
+</p>
+<p>
+  Blueprints are modules that contain related views that you can conveniently import in __init__.py. For example, you’ll
+  have a blueprint that stores the main pages of your project.
+</p>
+
+<div>
+  <div class="container">
+    <div class="form-container">
+      <fieldset class="fieldset">
+        <form action="{{ url_for('iws.rest.v1.contacts.create') }}" method="post">
+
+          <label class="label-bold" for="first_name">First Name<span class="label-required-star"
+              aria-hidden="true">*</span></label>
+          <input type="text" placeholder="First Name" name="first_name" required />
+
+          <label class="label-bold" for="last_name">Last Name<span class="label-required-star"
+              aria-hidden="true">*</span></label>
+          <input type="text" placeholder="Last Name" name="last_name" required />
+
+          <label for="country">Country</label>
+          <select id="country" name="country">
+            <option value="australia">Australia</option>
+            <option value="canada">Canada</option>
+            <option value="india">India</option>
+            <option value="usa">USA</option>
+          </select>
+
+          <label for="subject">Subject</label>
+          <textarea id="subject" name="subject" placeholder="Write something.."></textarea>
+
+          <!-- submit-button -->
+          <button type="submit">Submit</button>
+
+        </form>
+      </fieldset>
+    </div>
+
+  </div>
+</div>
+
+
+{% endblock content %}

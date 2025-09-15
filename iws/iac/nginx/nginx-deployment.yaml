@@ -1,0 +1,30 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps/v1
+kind: Deployment
+# Part 1
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+  namespace: default
+# Part 2
+spec: # Deployment Specification
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec: # Container Specification
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+          - containerPort: 8080
+        imagePullPolicy: Always
+status: {}

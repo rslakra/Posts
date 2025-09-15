@@ -1,0 +1,13 @@
+apiVersion: apps/v1beta1
+kind: POD
+# Part 1
+metadata:
+  name: posts-iws-pod
+  labels:
+    app: posts-iws
+# Part 2
+spec: # Deployment Specification
+  containers:
+    - name: posts-iws
+      image: localhost:5000/posts-iws
+      imagePullPolicy: IfNotPresent

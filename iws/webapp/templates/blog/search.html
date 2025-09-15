@@ -1,0 +1,32 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+  {% block title %}
+  Search - Product
+  {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+
+<div>
+  <div class="container">
+    <div class="form-container">
+      <fieldset class="fieldset">
+        <form action="{{ url_for('iws.rest.v1.blog.search') }}" method="POST">
+          <label class="label-bold" for="find_what">Search:<span class="label-required-star"
+              aria-hidden="true">*</span></label>
+          <input type="text" placeholder="Search Blog Posts" name="find_what" id="find_what" required />
+
+          <!-- submit-button -->
+          <button type="submit">Submit</button>
+        </form>
+      </fieldset>
+    </div>
+
+  </div>
+</div>
+
+
+{% endblock content %}

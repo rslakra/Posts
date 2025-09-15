@@ -1,6 +1,7 @@
 # Author: Rohtash Lakra
 # Signifies our desired python version
-# Makefile macros (or variables) are defined a little bit differently than traditional bash, keep in mind that in the Makefile there's top-level Makefile-only syntax, and everything else is bash script syntax.
+# Makefile macros (or variables) are defined a little bit differently than traditional bash, keep in mind that in
+# the Makefile there's top-level Makefile-only syntax, and everything else is bash script syntax.
 # PYTHON = python3
 # https://gist.github.com/MarkWarneke/2e26d7caef237042e9374ebf564517ad
 #
@@ -12,6 +13,7 @@ ROOT_DIR:=${PWD}
 VENV:=venv
 PYTHON=$(VENV)/bin/python
 PIP=$(VENV)/bin/pip
+ACTIVATE=$(VENV)/bin/activate
 REMOVE_FILES:=__pycache__
 # Date Settings
 TIMESTAMP:=$(date +%s)
@@ -123,22 +125,6 @@ help:
 #         touch "project_files.project/$${FILE}.txt"; \
 #     done
 
-setup: ## Sets up environment and installs requirements
-setup:
-	@# Help: Sets up environment and installs requirements
-	@echo "Setting up the Python environment ..."
-	python3 -m pip install virtualenv
-	python3 -m $(VENV) $(VENV)
-	#source $(VENV)/bin/activate
-	. $(VENV)/bin/activate
-	@echo
-	$(pwd)
-	@echo
-	#$(PIP) install --upgrade pip
-	$(PIP) install --upgrade pip
-	#$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements.txt
-
 #
 # Clean Commands
 #
@@ -155,14 +141,34 @@ clean:
 	find . -name '*.py[co]' -delete
 	find . -type f -name '*.py[co]' -delete
 
+
+setup: ## Sets up environment and installs requirements
+setup:
+	@# Help: Sets up environment and installs requirements
+	@echo "Setting up the Python environment ..."
+	python3 -m pip install virtualenv
+	python3 -m $(VENV) $(VENV)
+	#source $(VENV)/bin/activate
+	. $(ACTIVATE)
+	@echo
+	$(pwd)
+	@echo
+# 	#$(PIP) install --upgrade pip
+# 	$(PIP) install --upgrade pip
+# 	#$(PYTHON) -m pip install --upgrade pip
+# 	$(PYTHON) -m pip install -r requirements.txt
+
 #
 # Virtual Env Commands
 #
 
-venv:
-	@# Help: Sets up environment and installs requirements
-	@echo "Activating Virtual Environment ..."
-	source $(VENV)/bin/activate
+install-packages:
+	@# Help: Upgrade PIP & Installs packages/dependencies
+	@echo "Upgrade PIP & Installs packages/dependencies ..."
+# 	source $(VENV)/bin/activate
+	$(PIP) install --upgrade pip
+	$(PIP) install -r requirements.txt
+
 
 #
 # Run Commands

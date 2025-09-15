@@ -1,0 +1,48 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+    {% block title %}
+    Profile
+    {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="form-container">
+        <fieldset class="fieldset">
+            <form action="{{ url_for('iws.api.v1.accounts.profile_view') }}" method="post">
+                <div class="img-container">
+                    <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar"
+                        class="avatar">
+                </div>
+
+                <label class="label-bold" for="username">Username <span class="label-required-star"
+                        aria-hidden="true">*</span></label>
+                <input type="email" placeholder="Enter Username" name="username" required />
+
+                <label class="label-bold" for="firstName">First Name <span class="label-required-star"
+                        aria-hidden="true">*</span></label>
+                <input type="text" placeholder="Enter First Name" name="firstName" required />
+
+                <label class="label-bold" for="lastName">Last Name <span class="label-required-star"
+                        aria-hidden="true">*</span></label>
+                <input type="text" placeholder="Enter Last Name" name="lastName" required />
+
+                <label class="label-bold" for="email">Email <span class="label-required-star"
+                        aria-hidden="true">*</span></label>
+                <input type="email" placeholder="Email" name="email" required />
+
+                <!-- submit-button -->
+                <button type="submit">Save</button>
+            </form>
+        </fieldset>
+    </div>
+
+</div>
+
+
+{% endblock content %}

@@ -1,0 +1,159 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css");
+
+:root {
+
+  --background-color: #f8f8f8;
+  --black-color: #000000;
+  --white-color: #ffffff;
+
+  --menubar-background-color: #f8f8f8;
+
+  /* color: #f1f1f1; */
+  /* color: #781; */
+
+  --mouse-over-color: #56b85f;
+  /* --mouse-over-color: #337ab7; */
+  /* --mouse-over-color: #6d7610; */
+  /* --mouse-over-color: #781; */
+
+  --mouse-over-background-color: #e7e7e7;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/**
+ * Container
+ */
+
+.container {
+  padding-right: auto;
+  padding-left: auto;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/**
+ * Fixed/Top Navbar
+ */
+
+/* .navbar-default {
+  background-color: var(--menubar-background-color);
+  border-color: var(--mouse-over-background-color);
+} */
+
+.navbar-fixed-bottom,
+.navbar-fixed-top {
+  position: fixed;
+  left: auto;
+  right: auto;
+}
+
+/* When you mouse over the navigation links, change their color */
+.navbar-default .navbar-nav>li>a:hover,
+.navbar-default .navbar-nav>li>a:focus {
+  color: var(--mouse-over-color);
+  background-color: transparent;
+  font-size: 16px;
+}
+
+/* When the navigation links is active, change their color */
+/* .navbar-default .navbar-nav>.active>a,
+.navbar-default .navbar-nav>.active>a:hover,
+.navbar-default .navbar-nav>.active>a:focus {
+  color: #555;
+  background-color: var(--mouse-over-bg-color);
+} */
+
+
+/**
+ * Side Navbar
+ */
+
+.sidenav {
+  height: 100%;
+  /* 100% Full-height */
+  width: 0;
+  /* 0 width - change this with JavaScript */
+  position: fixed;
+  /* Stay in place */
+  z-index: 1;
+  /* Stay on top */
+  top: 50px;
+  left: 0;
+  /* background-color: #111; */
+  background-color: var(--menubar-background-color);
+  /* Black*/
+  overflow-x: hidden;
+  /* Disable horizontal scroll */
+  padding-top: 60px;
+  /* Place content 60px from the top */
+  transition: 0.5s;
+  /* 0.5 second transition effect to slide in the sidenav */
+}
+
+/* The navigation menu links */
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 24px;
+  color: #818181;
+  display: block;
+  transition: 0.3s
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover,
+.offcanvas a:focus {
+  /* color: #f1f1f1; */
+  /* color: #781; */
+  color: var(--mouse-over-color);
+  /* background-color: transparent; */
+  /* font-size: 16px; */
+}
+
+/* Position and style the close button (top right corner) */
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+section {
+  margin-top: 80px;
+}
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+#main {
+  transition: margin-left .5s;
+  padding: 20px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidenav {
+    padding-top: 16px;
+  }
+
+  .sidenav a {
+    font-size: 16px;
+  }
+}
+
+
+/**
+ * Footer
+ */
+footer {
+  /* text-align: center;*/
+  background-color: var(--menubar-background-color);
+  margin: 24px;
+}
+
+.footer div {
+  margin: 24px;
+}
+

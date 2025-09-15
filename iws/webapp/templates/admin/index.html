@@ -1,0 +1,31 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+    {% block title %}
+    Admin
+    {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+{% include("admin/_navbar.html") %}
+
+<br>
+
+<div class="table">
+    <p>List of notifications</p>
+    <ul>
+        <li><a href="#">Register</a></li>
+        <li><a href="#">Login</a></li>
+        <li><a href="#">Forgot Password</a></li>
+        <li><a href="#">Profile</a></li>
+        <li><a href="#">Admin</a></li>
+    </ul>
+
+</div>
+
+
+<br>
+
+{% endblock content %}

@@ -1,0 +1,50 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+    {% block title %}
+    Login
+    {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+{% include("admin/_navbar.html") %}
+
+<br>
+
+<div>
+    <fieldset class="fieldset">
+        <form action="{{ url_for('iws.api.v1.accounts.login') }}" method="post">
+            <div class="img-container">
+                <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
+            </div>
+
+            <div class="container">
+                <label for="username"><b>Username</b></label>
+                <input type="email" placeholder="Enter Username" name="username" required />
+
+                <label for="password"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="password" required />
+
+                <button type="submit">Login</button>
+                <label>
+                    <input type="checkbox" checked="checked" name="remember" /> Remember me
+                </label>
+            </div>
+
+            <div class="container button-panel">
+                <!-- <button type="button" onclick="document.getElementById('frmLogin').style.display='none'"
+                    class="cancel-button">Cancel</button> -->
+                <span class="password"><a href="{{ url_for('iws.api.v1.accounts.forgot_password') }}">Forgot
+                        Password?</a></span>
+                <span><a href="{{ url_for('iws.api.v1.accounts.register') }}">Register</a></span>
+            </div>
+        </form>
+        <!--    </fieldset>-->
+</div>
+
+
+<br>
+
+{% endblock content %}

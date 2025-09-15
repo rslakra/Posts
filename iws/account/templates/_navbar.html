@@ -1,0 +1,14 @@
+<!-- Navbar -->
+<nav class="navbar navbar-default">
+  <div class="container">
+    <!-- start::navbar-collapse -->
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li><a href="{{ url_for('iws.api.v1.accounts.register_view') }}">Register</a></li>
+        <li><a href="{{ url_for('iws.api.v1.accounts.login_view') }}">Login</a></li>
+        <li><a href="{{ url_for('iws.api.v1.accounts.forgot_password') }}">Forgot Password</a></li>
+        <li><a href="{{ url_for('iws.api.v1.accounts.profile_view') }}">Profile</a></li>
+      </ul>
+    </div><!-- end::navbar-collapse -->
+  </div>
+</nav>

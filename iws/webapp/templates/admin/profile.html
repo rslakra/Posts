@@ -1,0 +1,46 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+    {% block title %}
+    Profile
+    {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+{% include("admin/_navbar.html") %}
+
+<br>
+
+
+<div class="container">
+    <fieldset class="fieldset">
+        <form class="container" action="{{ url_for('iws.api.v1.accounts.profile_view') }}" method="post">
+            <div class="img-container">
+                <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
+            </div>
+
+            <div class="container">
+                <label for="username"><b>Username</b></label>
+                <input type="email" placeholder="Enter Username" name="username" required />
+
+                <label for="password"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="password" required />
+
+                <label for="firstName"><b>First Name</b></label>
+                <input type="text" placeholder="Enter First Name" name="firstName" required />
+
+                <label for="lastName"><b>Last Name</b></label>
+                <input type="text" placeholder="Enter Last Name" name="lastName" required />
+
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </fieldset>
+</div>
+
+
+<br>
+
+{% endblock content %}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+    <!-- roles -->
+    <changeSet author="rslakra" id="create_roles_table">
+        <createTable tableName="roles">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="pk_role_id"/>
+            </column>
+            <column name="name" type="varchar(32)">
+                <constraints unique="true" uniqueConstraintName="uk_roles_name" nullable="false"/>
+            </column>
+            <column name="active" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+        <createSequence sequenceName="hibernate_sequence" incrementBy="1" startValue="1"/>
+        <addAutoIncrement tableName="roles" columnName="id" columnDataType="bigint" startWith="1" incrementBy="1"/>
+    </changeSet>
+
+    <!-- users -->
+    <changeSet author="rslakra" id="create_users_table">
+        <createTable tableName="users">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" primaryKeyName="pk_user_id"/>
+            </column>
+            <column name="user_name" type="varchar(64)">
+                <constraints unique="true" uniqueConstraintName="uk_users_user_name" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="active" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+        <addAutoIncrement tableName="users" columnName="id" columnDataType="bigint" startWith="1" incrementBy="1"/>
+    </changeSet>
+
+</databaseChangeLog>

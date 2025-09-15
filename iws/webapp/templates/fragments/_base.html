@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- add header here -->
+{% include("fragments/_header.html") %}
+
+<!-- body -->
+<body>
+  <!-- container -->
+  <div class="container">
+    <!-- add fixed/top navigation bar -->
+    {% include("fragments/_navigation.html") %}
+
+    <!-- section to add body contents here -->
+    <section>
+      <!-- header of the body -->
+      <header>
+        {% block header %}{% endblock header %}
+      </header>
+
+      <!-- section of the main body contents -->
+      <main>
+        {% block content %}<p>No messages.</p>{% endblock content %}
+      </main>
+
+    </section>
+
+    <!-- add footer here -->
+    {% include("fragments/_footer.html") %}
+  </div>
+
+</body>
+
+</html>

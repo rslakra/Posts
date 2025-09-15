@@ -1,0 +1,38 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+  {% block title %}
+  Logout
+  {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+
+<h3>
+  You are now logged out. Thank you for visiting.
+</h3>
+
+<div>
+  <h4>Leverage Blueprints</h4>
+  <p>
+    What's it like to have a team work for you?
+  </p>
+  <p>
+    <a href="{{ url_for('iws.webapp.services') }}">Find out more</a>
+  </p>
+
+</div>
+<div>
+  <p>For your security:</p>
+  <p>
+    We recommend closing your browser once you're through using our website. The account information screens will remain
+    in the browser's memory until the browser is closed.
+  </p>
+</div>
+<div>
+  <p>v:1.0.0</p>
+</div>
+
+{% endblock content %}

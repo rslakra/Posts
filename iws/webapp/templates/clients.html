@@ -1,0 +1,26 @@
+{% extends 'fragments/_base.html' %}
+
+{% block header %}
+<h2>
+  {% block title %}
+  Clients
+  {% endblock title %}
+</h2>
+{% endblock header %}
+
+{% block content %}
+<h2>Create a Virtual Environment</h2>
+<p>
+  In this section, you’ll build your project structure. You can name the root folder of your project any way you like.
+  For example, you could name it rp_flask_board/ if your ultimate goal is to create a message board. If you have another
+  project in mind, then feel free to name your folder accordingly. Create your folder and navigate into it:
+</p>
+
+<h2>Add Your Child Templates</h2>
+<p>
+  Your base template is designed to provide a consistent structure for your project while allowing flexibility in
+  specific parts of the content through Jinja’s block functionality. Next, create the child templates that extend
+  _base.html and fill in these blocks with their specific content.
+</p>
+
+{% endblock content %}

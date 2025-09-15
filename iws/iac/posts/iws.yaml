@@ -1,0 +1,74 @@
+# posts-iws deployment and replicaset
+apiVersion: apps/v1
+kind: Deployment
+# Part 1
+metadata:
+  name: posts-iws-deployment
+  labels:
+    app: posts-iws
+# Part 2
+spec: # Deployment Specification
+  replicas: 1
+  selector:
+    matchLabels:
+      app: posts-iws
+  template:
+    metadata:
+      labels:
+        app: posts-iws
+    spec: # Container Specification
+      containers:
+        - name: posts-iws
+          image: localhost:5016/posts-iws
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: posts-iws-configmap
+                  key: db_type
+            - name: DB_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: posts-iws-configmap
+                  key: db_host
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: posts-iws-configmap
+                  key: db_port
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: posts-iws-configmap
+                  key: db_name
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: posts-iws-secret
+                  key: db_username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: posts-iws-secret
+                  key: db_password
+
+---
+# posts-iws service
+apiVersion: v1
+kind: Service
+# Part 1
+metadata:
+  name: posts-iws-service
+# Part 2
+spec: # Deployment Specification
+  selector:
+    app: posts-iws
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30000 #Range: 30000 - 32767

@@ -1,0 +1,31 @@
+# swagger.yml
+# Author: Rohtash Lakra
+#
+
+# Default Configuration
+openapi: 3.0.0
+info:
+  title: "The Posts Applications"
+  description: "The Posts Python REST APIs With Flask"
+  version: "1.0.0"
+
+#
+# Servers Configuration
+# By providing "/swagger/api" as the value of url,
+# you’ll be able to access all of your API paths relative to http://localhost:8000/swagger/api.
+#
+servers:
+  - url: "/api/v1"
+#  - url: "/rest/v1"
+
+paths:
+  /posts:
+    get:
+      # operationId must contain a string. Connexion will use "posts" to find a Python function named read_all() in a posts module of your project.
+      operationId: "posts"
+      tags:
+        - "Post"
+      summary: "Read the list of post"
+      responses:
+        "200":
+          description: "Successfully read post list"
