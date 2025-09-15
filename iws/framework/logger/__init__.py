@@ -111,7 +111,7 @@ class DefaultLogger(logging.LoggerAdapter):
     is passed and contains 'debug_data' in dict.
     """
 
-    def __init__(self, app: Flask, level: int = LOG_LEVEL, extra={}):
+    def __init__(self, app=None, level: int = LOG_LEVEL, extra={}):
         self.app = app
         app.logger.setLevel(level)
         super().__init__(app.logger, extra)

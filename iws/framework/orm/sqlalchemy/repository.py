@@ -24,7 +24,7 @@ class SqlAlchemyRepository(AbstractRepository):
 
     def save(self, instance: BaseSchema) -> BaseSchema:
         """Returns records by filter or empty list"""
-        logger.debug(f"+{self.__class__.__name__}.save({instance})")
+        logger.debug(f"+save({instance})")
         if instance is not None:
             with Session(bind=self.get_engine(), expire_on_commit=False) as session:
                 try:
@@ -58,12 +58,12 @@ class SqlAlchemyRepository(AbstractRepository):
         else:
             logger.warning(f"No instance provided to persist!")
 
-        logger.debug(f"-{self.__class__.__name__}.save(), instance={instance}")
+        logger.debug(f"-save(), instance={instance}")
         return instance
 
     def save_all(self, instances: Iterable[BaseSchema]) -> None:
         """Returns records by filter or empty list"""
-        logger.debug(f"+{self.__class__.__name__}.save_all({instances})")
+        logger.debug(f"+save_all({instances})")
         if instances is not None:
             with Session(bind=self.get_engine(), expire_on_commit=False) as session:
                 try:
@@ -94,7 +94,7 @@ class SqlAlchemyRepository(AbstractRepository):
         else:
             logger.warning(f"No instances provided to persist!")
 
-        logger.debug(f"-{self.__class__.__name__}.save_all()")
+        logger.debug(f"-save_all()")
 
     def filter(self, filters: Dict[str, Any]) -> List[Optional[BaseSchema]]:
         """Filters the records of the provided table by parses filters dict.
@@ -115,7 +115,7 @@ class SqlAlchemyRepository(AbstractRepository):
 
         - return: Optional[BaseSchema]
         """
-        logger.debug(f"+{self.__class__.__name__}.findById({schemaObject}, {id})")
+        logger.debug(f"+findById({schemaObject}, {id})")
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
             try:
                 schemaObject = session.query(schemaObject).filter(schemaObject.id == id).one()
@@ -156,12 +156,12 @@ class SqlAlchemyRepository(AbstractRepository):
                 # is removed.
                 session.close()
 
-        logger.debug(f"-{self.__class__.__name__}.findById(), schemaObject={schemaObject}")
+        logger.debug(f"-findById(), schemaObject={schemaObject}")
         return schemaObject
 
     def findAll(self, schemaObject: BaseSchema, filters: Dict[str, Any]) -> List[Optional[BaseSchema]]:
         """Returns the records by filter or empty list"""
-        logger.debug(f"+{self.__class__.__name__}.findAll({schemaObject}, {filters})")
+        logger.debug(f"+findAll({schemaObject}, {filters})")
         schemaObjects = None
         # verbose version of what a context manager will do
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
@@ -206,7 +206,7 @@ class SqlAlchemyRepository(AbstractRepository):
                 # is removed.
                 session.close()
 
-        logger.debug(f"-{self.__class__.__name__}.findAll(), schemaObjects={schemaObjects}")
+        logger.debug(f"-findAll(), schemaObjects={schemaObjects}")
         return schemaObjects
 
     def updateObjects(self, table: str, update_json=[]) -> Optional[List[dict]]:
@@ -217,7 +217,7 @@ class SqlAlchemyRepository(AbstractRepository):
 
         :return: Optional[List[dict]]
         """
-        logger.debug(f"{self.__class__.__name__}.updateObjects({table}, {update_json})")
+        logger.debug(f"+updateObjects({table}, {update_json})")
         query = f'UPDATE {table} {self.build_update_set_fields(update_json)}'
         with Session(self.get_engine()) as session:
             try:
@@ -235,7 +235,7 @@ class SqlAlchemyRepository(AbstractRepository):
 
     def update(self, mapper: Mapper[BaseSchema], mappings: List[BaseSchema]) -> List[Optional[BaseSchema]]:
         """Updates an instance into database via the ORM flush process."""
-        logger.debug(f"+{self.__class__.__name__}.update(), mapper={mapper}, mappings={mappings}")
+        logger.debug(f"+update(), mapper={mapper}, mappings={mappings}")
         if mappings is not None:
             with Session(self.get_engine()) as session:
                 try:
@@ -252,5 +252,5 @@ class SqlAlchemyRepository(AbstractRepository):
         else:
             logger.warning(f"No instance provided to update!")
 
-        logger.debug(f"-{self.__class__.__name__}.update(), mappings={mappings}")
+        logger.debug(f"-update(), mappings={mappings}")
         return mappings

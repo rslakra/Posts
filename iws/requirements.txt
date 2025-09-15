@@ -2,8 +2,10 @@ annotated-types==0.7.0
 blinker==1.9.0
 click==8.1.7
 connexion==3.1.0
+contextvars==2.4
 cryptography==44.0.0
-python-dotenv==1.0.1
+python-dotenv==1.1.0
+fastapi==0.115.12
 Flask==3.1.0
 Flask-Cors==5.0.0
 Flask-3-Log-Request-ID==0.11.1
@@ -11,11 +13,14 @@ gunicorn==23.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.4
 MarkupSafe==2.1.5
-pydantic==2.10.4
+pydantic==2.11.1
+pydantic[dotenv]==2.11.1
 PyJWT==2.10.1
+pydantic-settings==2.8.1
 PyYAML==6.0.2
 requests==2.32.3
 Sphinx==8.1.3
 SQLAlchemy==2.0.31
 typing_extensions==4.12.2
+uvicorn==0.34.0
 Werkzeug==3.1.3

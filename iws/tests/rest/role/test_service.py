@@ -4,7 +4,7 @@ import unittest
 from framework.exception import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.sqlalchemy.schema import SchemaOperation
-from framework.datetime import nowMillis
+from framework.time import timeMillis
 from rest.role.model import Role, Permission
 from rest.role.service import RoleService
 from tests.base import AbstractTestCase
@@ -26,8 +26,8 @@ class RoleServiceTest(AbstractTestCase):
         self.assertEqual(expected, str(RoleService))
 
         # init object
-        self.role = Role(name=f"ServiceRole-{nowMillis()}", active=True, meta_data={"description": "A service role"})
-        self.readPermission = Permission(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
+        self.role = Role(name=f"ServiceRole-{timeMillis()}", active=True, meta_data={"description": "A service role"})
+        self.readPermission = Permission(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
         self.roleService = RoleService()
         logger.debug(f"roleService={self.roleService}")
         self.assertIsNotNone(self.roleService)
@@ -114,11 +114,11 @@ class RoleServiceTest(AbstractTestCase):
 
     def test_create_role_with_permissions(self):
         logger.debug("+test_create_role_with_permissions()")
-        roleName = f"MultiPermissions-{nowMillis()}"
+        roleName = f"MultiPermissions-{timeMillis()}"
         roleWithPermissions = Role(name=roleName)
-        readPermission = Permission(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
-        writePermission = Permission(name=f"Write-{nowMillis()}", description="Allows write access", active=True)
-        executePermission = Permission(name=f"Execute-{nowMillis()}", description="Allows execute access", active=True)
+        readPermission = Permission(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
+        writePermission = Permission(name=f"Write-{timeMillis()}", description="Allows write access", active=True)
+        executePermission = Permission(name=f"Execute-{timeMillis()}", description="Allows execute access", active=True)
         roleWithPermissions.permissions.extend([readPermission, writePermission, executePermission])
         logger.debug(f"roleWithPermissions={roleWithPermissions}")
 

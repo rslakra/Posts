@@ -12,62 +12,62 @@ bundled in ```webapp/__init__.py```. If you split this functionality into module
 across different projects.
 
 ```
-/
-├── ews                             # An external web-service
-├── iws                             # An internal web-service
-│    ├── account                    # an account’s rest service.
-│    │    ├── v1                    # contains v1 blueprints/api resources.
-│    │    │    ├── routes           # contains the routes of api resource.
-│    │    ├── v2                    # contains v2 blueprints/api resources.
-│    │    │    ├── routes           # contains the routes of api resource.
-│    │    ├── __init__.py           # The package initializer
-│    │    ├── models.py             # The model objects
-│    │    ├── README.md             # Instructions and helpful links
-│    │    └── _routes.py            # The package initializer
-│    ├── admin                      # an admin’s rest service.
-│    ├── api                        # The API service
-│    ├── comment                    # The HTML views/pages of accounts
-│    ├── common                     # contains the definition of the common’s models.
-│    ├── framework                  # contains the definition of the framework’s models.
-│    ├── logger                     # The logger module
-│    ├── post                       # contains the definition of the post’s models.
-│    ├── resources                  # contains the definition of the resources’s models.
-│    ├── rest                       # contains the definition of the rest api module.
-│    ├── tests                      # The unit-tests module of an application
-│    ├── webapp                     # contains the definition of the webapp’s module.
-│    │    ├── account               # contains the account’s templates.
-│    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
-│    │    ├── admin                 # contains the admin’s templates.
-│    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
-│    │    ├── comment               # contains the comment’s templates.
-│    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
-│    │    ├── post                  # contains the post’s templates.
-│    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
-│    │    ├── static                # The static contents like css, js etc.
-│    │    │    ├── css              # contains css files
-│    │    │    ├── images           # contains image files
-│    │    │    ├── js               # contains JavaScript files
-│    │    ├── templates             # contains the application’s templates.
-│    │    │    ├── account          # contains the reusable fragments of web views.
-│    │    │    │    ├── _navbar.html    # contains the routes of api resource.
-│    │    │    ├── admin            # contains the reusable fragments of web views.
-│    │    │    │    ├── _navbar.html    # contains the routes of api resource.
-│    │    │    ├── comment          # contains the reusable fragments of web views.
-│    │    │    ├── fragments        # contains the reusable fragments of web views.
-│    │    │    │    ├── _base.html      # base/parent contents of html files
-│    │    │    │    ├── _footer.html    # footer's contents
-│    │    │    │    └── _navigation.py  # navigation menu links
-│    │    │    ├── post             # contains the reusable fragments of web views.
-│    │    │    └── __init__.py      # The package initializer
-│    │    ├── __init__.py           # The package initializer
-│    │    ├── app.py                # The WSGI web application logic.
-│    │    ├── app.py                # contains the web application logic.
-│    │    ├── routes.py             # contains the definition of the web’s routes.
-│    ├── __init__.py                # The package initializer
-│    ├── config.py                  # contains the application configuration parameters.
-│    └── README.md                  # The README file of ews module
-├── README.md                       # Instructions and helpful links
-└── robots.txt                      # tells which URLs the search engine crawlers can access on your site
+    /
+    ├── ews                             # An external web-service
+    ├── iws                             # An internal web-service
+    │    ├── account                    # an account’s rest service.
+    │    │    ├── v1                    # contains v1 blueprints/api resources.
+    │    │    │    ├── routes           # contains the routes of api resource.
+    │    │    ├── v2                    # contains v2 blueprints/api resources.
+    │    │    │    ├── routes           # contains the routes of api resource.
+    │    │    ├── __init__.py           # The package initializer
+    │    │    ├── models.py             # The model objects
+    │    │    ├── README.md             # Instructions and helpful links
+    │    │    └── _routes.py            # The package initializer
+    │    ├── admin                      # an admin’s rest service.
+    │    ├── api                        # The API service
+    │    ├── comment                    # The HTML views/pages of accounts
+    │    ├── common                     # contains the definition of the common’s models.
+    │    ├── framework                  # contains the definition of the framework’s models.
+    │    ├── logger                     # The logger module
+    │    ├── post                       # contains the definition of the post’s models.
+    │    ├── resources                  # contains the definition of the resources’s models.
+    │    ├── rest                       # contains the definition of the rest api module.
+    │    ├── tests                      # The unit-tests module of an application
+    │    ├── webapp                     # contains the definition of the webapp’s module.
+    │    │    ├── account               # contains the account’s templates.
+    │    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
+    │    │    ├── admin                 # contains the admin’s templates.
+    │    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
+    │    │    ├── comment               # contains the comment’s templates.
+    │    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
+    │    │    ├── post                  # contains the post’s templates.
+    │    │    │    ├── _navbar.html     # contains the reusable fragments of web views.
+    │    │    ├── static                # The static contents like css, js etc.
+    │    │    │    ├── css              # contains css files
+    │    │    │    ├── images           # contains image files
+    │    │    │    ├── js               # contains JavaScript files
+    │    │    ├── templates             # contains the application’s templates.
+    │    │    │    ├── account          # contains the reusable fragments of web views.
+    │    │    │    │    ├── _navbar.html    # contains the routes of api resource.
+    │    │    │    ├── admin            # contains the reusable fragments of web views.
+    │    │    │    │    ├── _navbar.html    # contains the routes of api resource.
+    │    │    │    ├── comment          # contains the reusable fragments of web views.
+    │    │    │    ├── fragments        # contains the reusable fragments of web views.
+    │    │    │    │    ├── _base.html      # base/parent contents of html files
+    │    │    │    │    ├── _footer.html    # footer's contents
+    │    │    │    │    └── _navigation.py  # navigation menu links
+    │    │    │    ├── post             # contains the reusable fragments of web views.
+    │    │    │    └── __init__.py      # The package initializer
+    │    │    ├── __init__.py           # The package initializer
+    │    │    ├── app.py                # The WSGI web application logic.
+    │    │    ├── app.py                # contains the web application logic.
+    │    │    ├── routes.py             # contains the definition of the web’s routes.
+    │    ├── __init__.py                # The package initializer
+    │    ├── config.py                  # contains the application configuration parameters.
+    │    └── README.md                  # The README file of ews module
+    ├── README.md                       # Instructions and helpful links
+    └── robots.txt                      # tells which URLs the search engine crawlers can access on your site
 ```
 
 ## Local Development
@@ -129,10 +129,10 @@ touch .env
 #
 # App Configs
 #
-FLASK_ENV = development
+APP_ENV = develop
 DEBUG = False
-HOST = 127.0.0.1
-PORT = 8080
+HOST = 0.0.0.0
+PORT = 8082
 #
 # Pool Configs
 #
@@ -145,7 +145,7 @@ LOG_FILE_NAME = 'iws.log'
 #
 # Database Configs
 #
-DB_HOSTNAME = 127.0.0.1
+DB_HOSTNAME = 0.0.0.0
 DB_PORT =
 DB_NAME = posts
 DB_USERNAME = posts
@@ -159,30 +159,32 @@ DB_PASSWORD = Password
 
 
 ```shell
-python wsgi.py
+# Command to run the application (reads the port from environment variables)
+#CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8082} --workers 4"]
+
+uvicorn main:app --host 0.0.0.0 --port ${PORT:-8082} --reload
 
 OR
 
-#flask --app wsgi run
-python -m flask --app wsgi run
-# http://127.0.0.1:5000/posts
+uvicorn main:app --reload
+# http://0.0.0.0:8082/health-check
 
 OR
 
 python -m flask --app wsgi run --port 8080 --debug
-# http://127.0.0.1:8080/posts
+# http://0.0.0.0:8082/health-check
 
 OR
 
 # Production Mode
 
 # equivalent to 'from app import app'
-gunicorn wsgi:app
-# gunicorn -w <n> 'wsgi:app'
-gunicorn -w 2 'wsgi:app'
+gunicorn main:app --reload
+# gunicorn -w <n> 'main:app'
+gunicorn -w 2 'main:app'
 # http://127.0.0.1:8000/posts
 
-gunicorn -c gunicorn.conf.py wsgi:app
+gunicorn -c gunicorn.conf.py main:app
 # http://127.0.0.1:8080/posts
 
 ```

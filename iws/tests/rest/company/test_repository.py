@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from framework.datetime import nowMillis
+from framework.time import timeMillis
 from rest.company.repository import CompanyRepository
 from rest.company.schema import CompanySchema
 from tests.base import AbstractTestCase
@@ -46,7 +46,7 @@ class CompanyRepositoryTest(AbstractTestCase):
     def test_create_company(self):
         logger.debug("+test_create_company()")
 
-        companyName = f"Lakra Inc-{nowMillis()}"
+        companyName = f"Lakra Inc-{timeMillis()}"
         # company's json
         company_json = {
             "name": companyName
@@ -70,13 +70,13 @@ class CompanyRepositoryTest(AbstractTestCase):
     def test_create_company_with_branches(self):
         logger.debug("+test_create_company_with_branches()")
 
-        companyName = f"Parent Inc-{nowMillis()}"
+        companyName = f"Parent Inc-{timeMillis()}"
         # company's json
         company_json = {
             "name": companyName,
             "branches": [
                 {
-                    "name": f"Child Inc-{nowMillis()}"
+                    "name": f"Child Inc-{timeMillis()}"
                 }
             ]
         }

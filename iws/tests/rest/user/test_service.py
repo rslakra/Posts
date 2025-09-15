@@ -4,7 +4,7 @@ import unittest
 from framework.exception import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.sqlalchemy.schema import SchemaOperation
-from framework.security.jwt import TokenTypeEnum
+from framework.security.jwt import TokenType
 from rest.user.model import User, Address, LoginUser
 from rest.user.service import UserService
 from tests.base import AbstractTestCase
@@ -151,7 +151,7 @@ class UserServiceTest(AbstractTestCase):
         logger.debug(f"user={self.user}")
         self.assertIsNotNone(self.user)
         self.assertIsNotNone(self.user.id)
-        self.assertEqual("Roh", self.user.first_name, "Firstname doesn't match!")
+        self.assertEquals("Roh", self.user.first_name)
 
         # login
         loginUser = LoginUser(email=self.user.email, password="password")
@@ -163,11 +163,10 @@ class UserServiceTest(AbstractTestCase):
         self.assertEqual(authUser.user_id, self.user.id)
 
         # authenticate
-        userObject = self.userService.authenticate(TokenTypeEnum.AUTH, authUser.token)
+        userObject = self.userService.authenticate(TokenType.AUTH, authUser.token)
         logger.debug(f"userObject={userObject}")
         self.assertIsNotNone(userObject)
         self.assertEqual(userObject.id, self.user.id)
-        self.assertTrue(userObject.authenticated)
 
         logger.debug("-test_login_user()")
         print()

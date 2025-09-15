@@ -25,7 +25,7 @@ class UserRepository(SqlAlchemyRepository):
     # @override
     def filter(self, filters: Dict[str, Any]) -> List[Optional[UserSchema]]:
         """Returns records by filter or empty list"""
-        logger.debug(f"+{self.__class__.__name__}.filter({filters})")
+        logger.debug(f"+filter({filters})")
         schemaObjects = None
         # verbose version of what a context manager will do
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
@@ -69,7 +69,7 @@ class UserRepository(SqlAlchemyRepository):
                 # is removed.
                 session.close()
 
-        logger.debug(f"-{self.__class__.__name__}.filter(), schemaObjects={schemaObjects}")
+        logger.debug(f"-filter(), schemaObjects={schemaObjects}")
         return schemaObjects
 
     def findByUsername(self, userName: str) -> UserSchema:
@@ -181,7 +181,7 @@ class UserSecurityRepository(SqlAlchemyRepository):
     # @override
     def filter(self, filters: Dict[str, Any]) -> List[Optional[UserSecuritySchema]]:
         """Returns records by filter or empty list"""
-        logger.debug(f"+{self.__class__.__name__}.findByFilter({filters})")
+        logger.debug(f"+findByFilter({filters})")
         schemaObjects = None
         # verbose version of what a context manager will do
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
@@ -225,11 +225,11 @@ class UserSecurityRepository(SqlAlchemyRepository):
                 # is removed.
                 session.close()
 
-        logger.debug(f"-{self.__class__.__name__}.findByFilter(), schemaObjects={schemaObjects}")
+        logger.debug(f"-findByFilter(), schemaObjects={schemaObjects}")
         return schemaObjects
 
     def update(self, schemaObject: UserSecuritySchema) -> UserSchema:
-        logger.debug(f"+{self.__class__.__name__}.update({schemaObject})")
+        logger.debug(f"+update({schemaObject})")
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
             try:
                 schemaObject.updated_at = func.now()
@@ -254,11 +254,11 @@ class UserSecurityRepository(SqlAlchemyRepository):
                 session.rollback()
                 raise ex
 
-        logger.info(f"-{self.__class__.__name__}.update(), results={results}")
+        logger.info(f"-update(), results={results}")
         return results
 
     def delete(self, filters: Dict[str, Any]) -> None:
-        logger.debug(f"+{self.__class__.__name__}.delete({filters})")
+        logger.debug(f"+delete({filters})")
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
             try:
                 schemaObject = session.query(UserSecuritySchema).filter_by(**filters).one()
@@ -279,10 +279,10 @@ class UserSecurityRepository(SqlAlchemyRepository):
                 session.rollback()
                 raise ex
 
-        logger.info(f"-{self.__class__.__name__}.delete()")
+        logger.info(f"-delete()")
 
     def bulkDelete(self, ids: list[int]) -> None:
-        logger.debug(f"+{self.__class__.__name__}.bulkDelete({ids})")
+        logger.debug(f"+bulkDelete({ids})")
         with Session(bind=self.get_engine(), expire_on_commit=False) as session:
             try:
                 schemaObjects = self.filter({"id": ids})
@@ -305,7 +305,7 @@ class UserSecurityRepository(SqlAlchemyRepository):
                 session.rollback()
                 raise ex
 
-        logger.info(f"-{self.__class__.__name__}.bulkDelete()")
+        logger.info(f"-bulkDelete()")
 
 
 class AddressRepository(SqlAlchemyRepository):

@@ -18,7 +18,12 @@ from pydantic import (
     model_validator,
     field_validator
 )
-# from pydantic.alias_generators import to_camel, to_snake
+# from pydantic.alias_generators import (
+#     to_camel,
+#     to_pascal,
+#     to_snake
+# )
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
 from framework.enums import BaseEnum
@@ -26,8 +31,7 @@ from framework.exception import (
     AbstractException,
     ValidationException,
     DuplicateRecordException,
-    RecordNotFoundException,
-    AuthenticationException
+    NoRecordFoundException
 )
 from framework.http import HTTPStatus
 from framework.utils import Utils
@@ -53,30 +57,47 @@ class SyncStatus(BaseEnum):
     SCHEDULED = auto()
 
 
-class AbstractModel(PydanticBaseModel):
-    """AbstractModel is a base model for all models inherit and provides basic configuration parameters."""
-    
+class ConfigSetting(BaseSettings):
+    """ConfigSetting is a base model for all configuration parameters."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding='utf-8',
+        case_sensitive=True,
+        extra="allow"
+    )
+
+    # class Config:
+    #     env_file = ".env"
+    #     case_sensitive = True
+    #     extra = "allow"
+
+
+class PydanticAbstractModel(PydanticBaseModel):
+    """PydanticAbstractModel is a base model for all models inherit and provides basic configuration parameters."""
+
     # protected_namespaces=() disables the protected namespace validation
     # model_config = ConfigDict(from_attributes=True, validate_assignment=True, arbitrary_types_allowed=True,
     #                           use_enum_values=True, alias_generator=AliasGenerator(
     #         validation_alias=to_snake,
     #         serialization_alias=to_snake,
     #     ), protected_namespaces=())
-    model_config = ConfigDict(from_attributes=True, validate_assignment=True, arbitrary_types_allowed=True,
-                              use_enum_values=True, protected_namespaces=())
-    
-    # auditable properties
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-    
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+        arbitrary_types_allowed=True,
+        use_enum_values=True,
+        protected_namespaces=()
+    )
+
     def getClassName(self) -> str:
         """Returns the name of the class."""
         return type(self).__name__
-    
+
     def getAllFields(self, alias=False) -> list:
         # return list(self.schema(by_alias=alias).get("properties").keys())
         return list(self.model_json_schema(by_alias=alias).get("properties").keys())
-    
+
     @classmethod
     def getClassFields(cls, by_alias=False) -> list[str]:
         field_names = []
@@ -85,9 +106,25 @@ class AbstractModel(PydanticBaseModel):
                 field_names.append(value.alias)
             else:
                 field_names.append(key)
-        
+
         return field_names
-    
+
+    def __str__(self):
+        """Returns the string representation of this object."""
+        return self.getClassName()
+
+    def __repr__(self):
+        """Returns the string representation of this object."""
+        return str(self)
+
+
+class AbstractModel(PydanticAbstractModel):
+    """AbstractModel is a base model for all models inherit and provides basic configuration parameters."""
+
+    # auditable properties
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
     @model_validator(mode="before")
     @classmethod
     def preValidator(cls, values: Any) -> Any:
@@ -105,10 +142,10 @@ class AbstractModel(PydanticBaseModel):
         #         raise ValueError("'created_at' should not be included!")
         #     if 'updated_at' in values:
         #         raise ValueError("'updated_at' should not be included!")
-        
+
         logger.debug(f"-preValidator(), values={values}")
         return values
-    
+
     @model_validator(mode="after")
     def postValidator(self, values) -> Self:
         """After validators: run after the whole model has been validated. As such, they are defined as instance methods
@@ -116,7 +153,7 @@ class AbstractModel(PydanticBaseModel):
         """
         logger.debug(f"postValidator() => type={type(self)}, values={values}")
         return self
-    
+
     # @model_validator(mode="wrap")
     # def modelValidator(self, values) -> Self:
     #     """Wrap validators: are the most flexible of all. You can run code before or after Pydantic and other validators
@@ -125,30 +162,22 @@ class AbstractModel(PydanticBaseModel):
     #     """
     #     logger.debug(f"modelValidator() => type={type(self)}, values={values}")
     #     return self
-    
+
     def to_json(self) -> str:
         """Returns the JSON representation of this object."""
         logger.debug(f"{self.getClassName()} => type={type(self)}, object={str(self)}")
         return self.model_dump_json()
-    
+
     def toJSONObject(self) -> Any:
         # return {column.key: getattr(self, column.key) for column in inspect(self).mapper.column_attrs}
         logger.debug(
             f"{self.getClassName()} => type={type(self)}, object={str(self)}, json={self.model_dump(mode='json')}")
         return self.model_dump(mode="json")
-    
+
     def _auditable(self) -> str:
         """Returns the string representation of this object"""
         return f"created_at={self.created_at}, updated_at={self.updated_at}"
-    
-    def __str__(self):
-        """Returns the string representation of this object."""
-        return f"{self.getClassName()} <{self.model_dump()}>"
-    
-    def __repr__(self):
-        """Returns the string representation of this object."""
-        return str(self)
-    
+
     @classmethod
     def validate_and_raise(cls, data, is_query_params: bool = False):
         try:
@@ -157,15 +186,15 @@ class AbstractModel(PydanticBaseModel):
                     if ',' in v:
                         data[k] = v.split(',')
             return cls(**data)
-        
+
         except ValidationError as e:
             # later can use the error response class and throw 422 validation error
             logger.error(f"Failed to validate [{type(cls)}]! Error={e}")
             for it in e.errors():
                 logger.error(f"it={it}")
-            
+
             raise e
-    
+
     @classmethod
     def listOfClassInstances(cls, data: List[Dict]) -> List['AbstractModel']:
         """Converts a list of dictionaries into a list of class instances.
@@ -177,7 +206,7 @@ class AbstractModel(PydanticBaseModel):
             A list of validated class instances.
         """
         return list(map(lambda it: cls(**it), data))
-    
+
     @classmethod
     def toResponse(cls, data: Union['AbstractModel', List['AbstractModel']]) -> Union[None, List[Dict], Dict]:
         """Converts an instance or list of instances of the pydantic classes into a serializable format.
@@ -193,21 +222,21 @@ class AbstractModel(PydanticBaseModel):
             return list(map(lambda it: it.dict(), data))
         elif isinstance(data, cls):
             return data.model_dump()
-        
+
         return None
 
 
 class BaseModel(AbstractModel):
     """BaseModel is a base model for all models inherit and provides basic configuration parameters."""
-    
+
     id: int | None = None
-    
+
     # @root_validator()
     # def on_create(cls, values):
     #     logger.debug(f"on_create({values})")
     #     print("Put your logic here!")
     #     return values
-    
+
     @model_validator(mode="before")
     @classmethod
     def preValidator(cls, values: Any) -> Any:
@@ -222,19 +251,19 @@ class BaseModel(AbstractModel):
         # <class 'pydantic._internal._model_construction.ModelMetaclass'>
         if not isinstance(values, dict):
             raise ValueError("Invalid 'Model' type!")
-        
+
         if isinstance(values, dict):
             if not values:
                 raise ValueError("'Model' is not fully defined!")
-        
+
         #     if 'created_at' in values:
         #         raise ValueError("'created_at' should not be included!")
         #     if 'updated_at' in values:
         #         raise ValueError("'updated_at' should not be included!")
-        
+
         logger.debug(f"-preValidator(), values={values}")
         return values
-    
+
     @model_validator(mode="after")
     def postValidator(self, values) -> Self:
         """After validators: run after the whole model has been validated. As such, they are defined as instance methods
@@ -242,10 +271,10 @@ class BaseModel(AbstractModel):
         """
         logger.debug(f"postValidator() => type={type(self)}, values={values}")
         return self
-    
+
     def get_id(self):
         return self.id
-    
+
     def load_and_not_raise(self, data):
         try:
             return self.load(data)
@@ -253,18 +282,18 @@ class BaseModel(AbstractModel):
             logger.error(f"load_and_not_raise() => Error:{ex.errors()}")
             # err = get_error(exception=None, msg=e.messages, status=422)
             # return abort(make_response(err, err.get('error').get('status')))
-    
+
     def validate_and_raise(self, data):
         errors = self.model_validate(data)
         if errors:
             logger.error(f"validate_and_raise() => Error:{errors}")
             # err = get_error(exception=None, msg=errors, status=422)
             # return abort(make_response(err, err.get('error').get('status')))
-    
+
     def __str__(self) -> str:
         """Returns the string representation of this object"""
         return f"{self.getClassName()} <id={self.get_id()}, {self._auditable()}>"
-    
+
     def __repr__(self) -> str:
         """Returns the string representation of this object"""
         return str(self)
@@ -272,9 +301,9 @@ class BaseModel(AbstractModel):
 
 class NamedModel(BaseModel):
     """NamedModel used an entity with a property called 'name' in it"""
-    
+
     name: str
-    
+
     @model_validator(mode="before")
     @classmethod
     def preValidator(cls, values: Any) -> Any:
@@ -284,26 +313,26 @@ class NamedModel(BaseModel):
         if isinstance(values, dict):
             if "name" not in values:
                 raise ValueError("The model 'name' should be provided!")
-        
+
         logger.debug(f"-preValidator(), values={values}")
         return values
-    
+
     @field_validator('name')
     @classmethod
     def nameValidator(cls, value: str):
         logger.info(f"nameValidator({value})")
         if value is None or len(value.strip()) == 0:
             raise ValueError("The model 'name' should not be null or empty!")
-        
+
         return value
-    
+
     def get_name(self):
         return self.name
-    
+
     def __str__(self):
         """Returns the string representation of this object"""
         return f"{self.getClassName()} <id={self.get_id()}, name={self.get_name()}>"
-    
+
     def __repr__(self) -> str:
         """Returns the string representation of this object"""
         return str(self)
@@ -314,12 +343,12 @@ class ErrorModel(AbstractModel):
     status: int = None
     message: str = None
     debug_info: Optional[Dict[str, object]] = None
-    
+
     def to_json(self) -> str:
         """Returns the JSON representation of this object."""
         logger.debug(f"{self.getClassName()} => type={type(self)}, object={str(self)}")
         return self.model_dump_json(exclude=["created_at", "updated_at"])
-    
+
     @staticmethod
     def buildError(httpStatus: HTTPStatus, message: str = None, exception: Exception = None,
                    is_critical: bool = False):
@@ -332,14 +361,14 @@ class ErrorModel(AbstractModel):
             is_critical: is error a critical error
         """
         logger.debug(f"buildError({httpStatus}, {message}, {exception}, {is_critical})")
-        
+
         # set message, if missing
         if message is None:
             if exception is not None:
                 message = str(exception)
             elif httpStatus:
                 message = httpStatus.message
-        
+
         # debug details
         debug_info = {}
         if is_critical and exception is not None:
@@ -350,16 +379,16 @@ class ErrorModel(AbstractModel):
             return ErrorModel(status=httpStatus.statusCode, message=message, debug_info=debug_info)
         else:
             return ErrorModel(status=httpStatus.statusCode, message=message)
-    
+
     @classmethod
     def jsonResponse(cls, httpStatus: HTTPStatus, message: str = None, exception: Exception = None,
                      is_critical: bool = False):
         return ErrorModel.buildError(httpStatus, message, exception, is_critical).to_json()
-    
+
     def __str__(self):
         """Returns the string representation of this object"""
         return f"{self.getClassName()} <status={self.status}, message={self.message}, debug_info={self.debug_info}>"
-    
+
     def __repr__(self) -> str:
         """Returns the string representation of this object"""
         return str(self)
@@ -371,7 +400,7 @@ class ResponseModel(AbstractModel):
     message: Optional[str] = None
     data: Optional[List[BaseModel]] = None
     errors: Optional[List[ErrorModel]] = None
-    
+
     def to_json(self) -> str:
         """Returns the JSON representation of this object."""
         logger.debug(f"{self.getClassName()} => type={type(self)}, object={str(self)}")
@@ -385,20 +414,20 @@ class ResponseModel(AbstractModel):
             for item in jsonObjects['data']:
                 # logger.debug(f"entry type={type(item)}, item={item}, json={item.to_json()}")
                 jsonData.append(json.loads(item.to_json()))
-            
+
             jsonObjects['data'] = jsonData
-        
+
         # parse list of errors to json
         if jsonObjects['errors']:
             jsonErrors = []
             for item in jsonObjects['errors']:
                 # logger.debug(f"entry type={type(item)}, item={item}, json={item.to_json()}")
                 jsonErrors.append(json.loads(item.to_json()))
-            
+
             jsonObjects['errors'] = jsonErrors
-        
+
         return jsonObjects
-    
+
     def toJSONObject(self) -> Any:
         # return {column.key: getattr(self, column.key) for column in inspect(self).mapper.column_attrs}
         # return self.model_dump(mode="json", serialize_as_any=True)
@@ -406,16 +435,16 @@ class ResponseModel(AbstractModel):
         jsonObject = self.model_dump(mode="json")
         for entry in self.data:
             logger.debug(f"entry type={type(entry)}, object={entry}")
-        
+
         jsonObject["data"] = self.data.model_dump(mode="json")
         jsonObject["errors"] = self.errors.model_dump(mode="json")
-        
+
         return jsonObject
-    
+
     def __str__(self) -> str:
         """Returns the string representation of this object"""
         return f"{self.getClassName()} <status={self.status}, data={self.data}, errors={self.errors}>"
-    
+
     def addInstance(self, instance: AbstractModel = None):
         """Adds an object into the list of data or errors"""
         logger.debug(
@@ -423,30 +452,30 @@ class ResponseModel(AbstractModel):
         if isinstance(instance, ErrorModel):
             if self.errors is None and instance:
                 self.errors = []
-            
+
             self.errors.append(instance)
-        
+
         elif isinstance(instance, BaseModel):
             if self.data is None and instance:
                 self.data = []
-            
+
             self.data.append(instance)
         else:
             logger.debug(f"Invalid instance:{instance}!")
-        
+
         logger.debug(f"-addInstance(), data={self.data}, errors={self.errors}, json={self.to_json()}")
-    
+
     def addInstances(self, instances: List[AbstractModel] = None):
         logger.debug(f"+addInstances(), instances={instances}")
         for instance in instances:
             self.addInstance(instance)
-        
+
         logger.debug(f"-addInstances()")
-    
+
     def hasError(self) -> bool:
         """Returns true if any errors otherwise false"""
         return self.errors is not None
-    
+
     @classmethod
     def buildResponse(cls, httpStatus: HTTPStatus, instance: AbstractModel = None, message: str = None,
                       exception: Exception = None, is_critical: bool = False):
@@ -457,7 +486,7 @@ class ResponseModel(AbstractModel):
             # update entity's message and exception if missing
             if not errorModel.message:
                 errorModel.message = instance.message if instance.message else errorModel.message
-            
+
             # build response and add errorModel in the list
             response = ResponseModel(status=httpStatus.statusCode)
             response.addInstance(errorModel)
@@ -470,6 +499,11 @@ class ResponseModel(AbstractModel):
                 response.addInstance(instance)
             else:
                 response.addInstance(ErrorModel.buildError(httpStatus, message, exception, is_critical))
+        elif exception:
+            logger.debug(f"elif exception => type={type(exception)}, exception={exception}")
+            response = ResponseModel(status=httpStatus.statusCode)
+            # build errorModel response, if exception is provided
+            response.addInstance(ErrorModel.buildError(httpStatus, message, exception, is_critical))
         elif not HTTPStatus.isStatusSuccess(httpStatus):
             logger.debug(f"not HTTPStatus.isStatusSuccess() => {HTTPStatus.isStatusSuccess(httpStatus)}")
             response = ResponseModel(status=httpStatus.statusCode)
@@ -478,14 +512,10 @@ class ResponseModel(AbstractModel):
         else:
             logger.debug(f"else => ")
             response = ResponseModel(status=httpStatus.statusCode)
-            if exception:
-                logger.debug(f"if exception => type={type(exception)}, exception={exception}")
-                # build errorModel response, if exception is provided
-                response.addInstance(ErrorModel.buildError(httpStatus, message, exception, is_critical))
-        
+
         logger.debug(f"-buildResponse(), response={response}")
         return response
-    
+
     @classmethod
     def buildResponseWithException(cls, exception: AbstractException):
         logger.debug(f"+buildResponseWithException() => type={type(exception)}")
@@ -498,52 +528,48 @@ class ResponseModel(AbstractModel):
         elif isinstance(exception, DuplicateRecordException):
             logger.debug(f"DuplicateRecordException => {isinstance(exception, DuplicateRecordException)}")
             response = ResponseModel(status=exception.httpStatus.statusCode)
-            lastMessage = exception.messages[-1] if exception.messages else None
-            response.addInstance(ErrorModel.buildError(httpStatus=exception.httpStatus, message=lastMessage))
-        elif isinstance(exception, RecordNotFoundException):
-            logger.debug(f"NoRecordFoundException => {isinstance(exception, RecordNotFoundException)}")
+            response.addInstance(
+                ErrorModel.buildError(httpStatus=exception.httpStatus, message=exception.messages[:-1]))
+        elif isinstance(exception, NoRecordFoundException):
+            logger.debug(f"NoRecordFoundException => {isinstance(exception, NoRecordFoundException)}")
             response = ResponseModel(status=exception.httpStatus.statusCode)
-            lastMessage = exception.messages[-1] if exception.messages else None
-            response.addInstance(ErrorModel.buildError(httpStatus=exception.httpStatus, message=lastMessage))
+            response.addInstance(
+                ErrorModel.buildError(httpStatus=exception.httpStatus, message=exception.messages[:-1])
+            )
             # response = ResponseModel.buildResponse(HTTPStatus.CONFLICT, message=str(exception))
-        elif isinstance(exception, AuthenticationException):
-            logger.debug(f"NoRecordFoundException => {isinstance(exception, RecordNotFoundException)}")
-            response = ResponseModel(status=exception.httpStatus.statusCode)
-            lastMessage = exception.messages[-1] if exception.messages else None
-            response.addInstance(ErrorModel.buildError(httpStatus=exception.httpStatus, message=lastMessage))
         elif isinstance(exception, AbstractException):
             logger.debug(f"isinstance(exception, AbstractException) => {isinstance(exception, AbstractException)}")
             response = ResponseModel(status=exception.httpStatus.statusCode)
             for message in exception.messages:
                 response.addInstance(ErrorModel.buildError(httpStatus=exception.httpStatus, message=message))
-            
+
             response = ResponseModel.buildResponse(HTTPStatus.CONFLICT, message=str(exception))
         elif isinstance(exception, Exception):
             logger.debug(f"isinstance(exception, Exception) => {isinstance(exception, Exception)}")
             response = ResponseModel(status=HTTPStatus.INTERNAL_SERVER_ERROR)
             # build errorModel response, if exception is provided
             response.addInstance(ErrorModel.buildError(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(exception)))
-        
+
         logger.debug(f"-buildResponseWithException(), type={type(exception)} response={response}")
         return response
-    
+
     @classmethod
     def jsonResponseWithException(cls, exception: AbstractException):
         logger.debug(f"+jsonResponseWithException({exception})")
         response = cls.buildResponseWithException(exception).to_json()
         logger.debug(f"-jsonResponseWithException(), response={response}")
         return response
-    
+
     @classmethod
     def jsonResponse(cls, httpStatus: HTTPStatus, instance: AbstractModel = None, message: str = None,
                      exception: Exception = None, is_critical: bool = False):
         return ResponseModel.buildResponse(httpStatus, instance, message, exception, is_critical).to_json()
-    
+
     @classmethod
     def jsonResponses(cls, httpStatus: HTTPStatus, instances: Optional[List[AbstractModel]] = []):
         logger.debug(f"jsonResponses() => httpStatus={httpStatus}")
         response = ResponseModel.buildResponse(httpStatus=httpStatus)
         for instance in instances:
             response.addInstance(instance)
-        
+
         return response.to_json()

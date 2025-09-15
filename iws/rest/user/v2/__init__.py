@@ -4,7 +4,7 @@
 #
 from flask import Blueprint
 
-bp = Blueprint("v2_users", __name__, url_prefix="/users")
+bp = Blueprint("users", __name__, url_prefix="/users")
 """
 Making a Flask Blueprint:
 
@@ -45,8 +45,3 @@ When you register the Flask Blueprint in an application, you extend the applicat
 
 """
 from rest.user import routes
-
-
-@bp.get("/route2")
-def getRoute2():
-    return {"path": "rest/user/v2"}
