@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- create sequences -->
+    <changeSet author="rslakra" id="create_sequences">
+        <createSequence sequenceName="hibernate_sequence" incrementBy="1" startValue="1"/>
+    </changeSet>
+
+    <!-- users -->
+    <changeSet author="rslakra" id="create_users_table">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_user_id"
+                             unique="true" uniqueConstraintName="uk_user_id"
+                             nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="email" type="varchar(64)">
+                <constraints unique="true" uniqueConstraintName="uk_user_email"
+                             nullable="false"/>
+            </column>
+            <column name="password" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="middle_name" type="varchar(64)"/>
+            <column name="last_name" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roles" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_on" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="java.sql.Timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_on" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="java.sql.Timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- posts -->
+    <changeSet author="rslakra" id="create_posts_table">
+        <createTable tableName="posts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_posts_id"
+                             nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="title" type="varchar(25)">
+                <constraints unique="true" uniqueConstraintName="uk_posts_title"
+                             nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- post_details -->
+    <changeSet author="rslakra" id="create_post_details_table">
+        <createTable tableName="post_details">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="pk_post_details_id"
+                             foreignKeyName="fk_post_details_posts"
+                             referencedTableName="posts" referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="description" type="varchar(255)"/>
+            <column name="created_on" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(50)" defaultValue="Rohtash Lakra">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- comments -->
+    <changeSet author="rslakra" id="create_comments_table">
+        <createTable tableName="comments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_comments_id"
+                             nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="review" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="post_id" type="BIGINT">
+                <constraints foreignKeyName="FK_POSTS_COMMENTS"
+                             referencedTableName="posts" referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- tags -->
+    <changeSet author="rslakra" id="create_tags_table">
+        <createTable tableName="tags">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_tags_id"
+                             nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT"/>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- posts_tags -->
+    <changeSet author="rslakra" id="create_posts_tags_table">
+        <createTable tableName="posts_tags">
+            <column name="post_id" type="BIGINT">
+                <constraints foreignKeyName="FK_POSTS"
+                             referencedTableName="posts" referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+            <column name="tag_id" type="BIGINT">
+                <constraints foreignKeyName="FK_TAGS"
+                             referencedTableName="tags" referencedColumnNames="id"
+                             nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="posts_tags"
+                       columnNames="post_id, tag_id"
+                       constraintName="pk_posts_tags"/>
+        <createIndex tableName="posts_tags" indexName="idx_posts_tags_tag_id">
+            <column name="tag_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
