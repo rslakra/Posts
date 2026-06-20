@@ -9,8 +9,8 @@ from enum import auto, unique
 import jwt
 import requests
 
-from framework.enums import BaseEnum
-from framework.exception import AuthenticationException
+from framework.enums.base import BaseEnum
+from framework.exception.auth import AuthenticationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import AbstractModel, BaseModel
 

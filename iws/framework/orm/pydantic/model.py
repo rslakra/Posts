@@ -23,16 +23,14 @@ from pydantic import (
 #     to_pascal,
 #     to_snake
 # )
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
+from settings import ConfigSetting
 
-from framework.enums import BaseEnum
-from framework.exception import (
-    AbstractException,
-    ValidationException,
-    DuplicateRecordException,
-    NoRecordFoundException
-)
+from framework.enums.base import BaseEnum
+from framework.exception.abstract import AbstractException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.utils import Utils
 
@@ -55,22 +53,6 @@ class SyncStatus(BaseEnum):
     IGNORED = auto()
     PENDING = auto()
     SCHEDULED = auto()
-
-
-class ConfigSetting(BaseSettings):
-    """ConfigSetting is a base model for all configuration parameters."""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding='utf-8',
-        case_sensitive=True,
-        extra="allow"
-    )
-
-    # class Config:
-    #     env_file = ".env"
-    #     case_sensitive = True
-    #     extra = "allow"
 
 
 class PydanticAbstractModel(PydanticBaseModel):

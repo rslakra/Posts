@@ -17,7 +17,8 @@ from flask import Flask, g, has_request_context, request
 from flask.logging import default_handler
 from flask_log_request_id import RequestID, RequestIDLogFilter
 
-from framework.enums import EnvType, KeyEnum
+from framework.enums.base import KeyEnum
+from framework.enums.env_type import EnvType
 
 UTF_8 = 'utf-8'
 LOG_LEVEL = logging.DEBUG
@@ -29,15 +30,32 @@ DATE_FORMAT_TZ = "%Y-%m-%d %H:%M:%S %z"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT_MSEC = "%Y-%m-%d %H:%M:%S.%f,%03d"
 
-# Configure app default loggers
-logging.basicConfig(level=LOG_LEVEL, format=DETAILED_LOG_FORMAT, force=True)
-logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
-# datetime.today().strftime("%Y-%m-%d %H:%M:%S.%f %z")[:23]
-# logging.Formatter(fmt=LOG_FORMAT, datefmt=DATE_FORMAT)
-
-
 # init logger
 logger = logging.getLogger(__name__)
+
+
+def setup_logger(level: int = LOG_LEVEL) -> None:
+    """Configure the global project logging policy in one place."""
+    logging.basicConfig(
+        level=level,
+        format=DETAILED_LOG_FORMAT,
+        datefmt=DATE_FORMAT,
+        force=True,
+    )
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    # Keep framework/service loggers aligned with the root logger.
+    for logger_name in ("framework", "api", "rest", "webapp", "main"):
+        logging.getLogger(logger_name).setLevel(level)
+
+    # Reduce overly noisy third-party loggers.
+    logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
+
+    # Keep uvicorn loggers aligned with app log level.
+    logging.getLogger("uvicorn").setLevel(level)
+    logging.getLogger("uvicorn.error").setLevel(level)
+    logging.getLogger("uvicorn.access").setLevel(level)
 
 # 1. Define the regex patterns of sensitive data
 sensitive_regex_patterns = [

@@ -8,7 +8,7 @@ from typing import Dict, Any
 from flask import g, request, current_app, Request
 
 from framework.utils import Utils
-from framework.enums import AutoUpperCase
+from framework.enums.base import AutoUpperCase
 
 logger = logging.getLogger(__name__)
 

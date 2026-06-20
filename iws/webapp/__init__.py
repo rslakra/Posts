@@ -16,17 +16,16 @@ from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api import bp as api_bp
-from common.config import Config
-from framework.enums import (
-    EnvType,
-    KeyEnum,
-    DbType)
+from config import Config
+from framework.enums.base import KeyEnum
+from framework.enums.db_type import DbType
+from framework.enums.env_type import EnvType
 from framework.http import HTTPStatus
 from framework.logger import DefaultLogger
 from framework.orm.pydantic.model import ResponseModel
 from globals import connector
 from rest import bp as rest_bp
-from webapp.routes import bp as webapp_bp
+from webapp.routes import webapp_router
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +183,7 @@ class WebApp:
         # register more app's here.
         bp.register_blueprint(rest_bp)
         bp.register_blueprint(api_bp)
-        bp.register_blueprint(webapp_bp)
+        bp.register_blueprint(webapp_router)
 
         # Register root blueprint with app that connects an app with other end-points
         app.register_blueprint(bp)

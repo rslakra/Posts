@@ -8,7 +8,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from rest.base import BaseRouter
-from framework.exception import DuplicateRecordException, ValidationException, NoRecordFoundException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ResponseModel
 from rest.role.model import Permission

@@ -4,7 +4,7 @@ import secrets
 
 from dotenv import load_dotenv
 
-from framework.enums import EnvType
+from framework.enums.env_type import EnvType
 
 # loads .env files
 load_dotenv()

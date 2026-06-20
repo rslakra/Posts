@@ -1,52 +1,35 @@
 #
 # Author: Rohtash Lakra
-# Reference - https://realpython.com/flask-blueprint/
 #
-import json
-
-from flask import current_app, render_template, make_response, request, redirect
-from blog.v1 import bp as bp_v1_blogs
-import time
 import logging
+import time
+
+from fastapi import Request
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
+
+from blog.v1 import blog_router
 
 logger = logging.getLogger(__name__)
+templates = Jinja2Templates(directory="webapp/templates")
 
 
-@bp_v1_blogs.get("/")
-def index():
-    """Load Index Page"""
-    logger.info(f"index={request}")
+@blog_router.get("/", include_in_schema=False)
+async def index(request: Request):
     posts = [
-        {
-            "title": "Are blogs important for businesses?",
-            "description": "Blogs are an important part of a company’s content strategy, as they can communicate the features and benefits of a product or service.",
-            "author": "Rohtash",
-            "posted_on": "2024-10-13T00:20:27.466337"
-        },
-        {
-            "title": "How should you format a blog post?",
-            "description": "A blog post should be formatted in a way that leads to increased readership and interest. Beginning with an attention-grabbing headline, a well-formatted blog post should also feature relatively brief sentences that convey ideas quickly. The post should also include subheads or section heads, helping readers to quickly understand the message or skip to sections that are more interesting to them. Additionally, photos and other graphics can increase readership, interest, and SEO rankings across search engines.",
-            "author": "R. Lakra",
-            "posted_on": "2024-10-23T00:40:21.466337"
-        }
+        {"title": "Are blogs important for businesses?", "description": "Blogs are an important part of a company’s content strategy, as they can communicate the features and benefits of a product or service.", "author": "Rohtash", "posted_on": "2024-10-13T00:20:27.466337"},
+        {"title": "How should you format a blog post?", "description": "A blog post should be formatted in a way that leads to increased readership and interest.", "author": "R. Lakra", "posted_on": "2024-10-23T00:40:21.466337"},
     ]
-
-    context = {
-        'strftime': time.strftime
-    }
-
-    current_app.logger.debug(f"posts={json.dumps(posts)}")
-    return render_template("blog/index.html", posts=posts, **context)
+    context = {"request": request, "posts": posts, "strftime": time.strftime}
+    return templates.TemplateResponse("blog/index.html", context)
 
 
-@bp_v1_blogs.route('/create', methods=['GET', 'POST'])
-def create():
-    """Load Create/Add Post Page"""
-    logger.info(f"index={request}")
-    if request.method == 'POST':
-        body = request.get_json()
-        print(f"body={body}")
-        return redirect('/')
+@blog_router.get("/create", include_in_schema=False)
+async def create_get(request: Request):
+    return templates.TemplateResponse("blog/create.html", {"request": request})
 
-    """Render Add Post Page"""
-    return render_template("blog/create.html")
+
+@blog_router.post("/create")
+async def create_post(request: Request):
+    await request.json()
+    return RedirectResponse(url="/blogs/", status_code=303)

@@ -16,9 +16,9 @@
 
 <div class="container">
     <fieldset class="container">
-        <form class="modal-content animate" action="{{ url_for('iws.api.v1.accounts.register') }}" method="post">
+        <form class="modal-content animate" action="/accounts/register" method="post">
             <div class="img-container">
-                <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
+                <img src="{{ url_for('static', path='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
             </div>
 
             <div class="container">
@@ -41,9 +41,9 @@
             </div>
 
             <div class="container button-panel">
-                <span class="password"><a href="{{ url_for('iws.api.v1.accounts.forgot_password') }}">Forgot
+                <span class="password"><a href="/accounts/forgot-password">Forgot
                         Password?</a></span>
-                <span><a href="{{ url_for('iws.api.v1.accounts.login') }}">Login</a></span>
+                <span><a href="/accounts/login">Login</a></span>
             </div>
         </form>
     </fieldset>

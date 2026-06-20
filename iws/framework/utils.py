@@ -10,7 +10,7 @@ import uuid
 
 import requests
 
-from framework.enums import BaseEnum
+from framework.enums.base import BaseEnum
 from framework.time import StopWatch
 
 # logger

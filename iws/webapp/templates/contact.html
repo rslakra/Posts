@@ -27,7 +27,14 @@
   <div class="container">
     <div class="form-container">
       <fieldset class="fieldset">
-        <form action="{{ url_for('iws.rest.v1.contacts.create') }}" method="post">
+        <form action="/contact-us" method="post">
+
+          {% if success_message %}
+          <p style="color: green; margin-bottom: 12px;">{{ success_message }}</p>
+          {% endif %}
+          {% if error_message %}
+          <p style="color: #b00020; margin-bottom: 12px;">{{ error_message }}</p>
+          {% endif %}
 
           <label class="label-bold" for="first_name">First Name<span class="label-required-star"
               aria-hidden="true">*</span></label>

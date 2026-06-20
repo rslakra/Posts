@@ -16,8 +16,8 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
 
-from framework.enums import DbType
-from framework.enums import EnvType
+from framework.enums.db_type import DbType
+from framework.enums.env_type import EnvType
 
 logger = logging.getLogger(__name__)
 

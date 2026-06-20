@@ -14,27 +14,35 @@
 
     <div class="form-container">
         <fieldset class="fieldset">
-            <form action="{{ url_for('iws.api.v1.accounts.profile_view') }}" method="post">
+            <form action="/accounts/profile" method="post">
+                <input type="hidden" name="id" value="{{ account.id if account else '' }}" />
                 <div class="img-container">
-                    <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar"
-                        class="avatar">
+                    <img src="{{ url_for('static', path='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
                 </div>
 
-                <label class="label-bold" for="username">Username <span class="label-required-star"
+                <label class="label-bold" for="user_name">Email <span class="label-required-star"
                         aria-hidden="true">*</span></label>
-                <input type="email" placeholder="Enter Username" name="username" required />
+                <input type="email" placeholder="Enter Email" name="user_name"
+                    value="{{ account.user_name if account else '' }}" required />
 
-                <label class="label-bold" for="firstName">First Name <span class="label-required-star"
+                <label class="label-bold" for="first_name">First Name <span class="label-required-star"
                         aria-hidden="true">*</span></label>
-                <input type="text" placeholder="Enter First Name" name="firstName" required />
+                <input type="text" placeholder="Enter First Name" name="first_name"
+                    value="{{ account.first_name if account else '' }}" required />
 
-                <label class="label-bold" for="lastName">Last Name <span class="label-required-star"
+                <label class="label-bold" for="last_name">Last Name <span class="label-required-star"
                         aria-hidden="true">*</span></label>
-                <input type="text" placeholder="Enter Last Name" name="lastName" required />
+                <input type="text" placeholder="Enter Last Name" name="last_name"
+                    value="{{ account.last_name if account else '' }}" required />
 
                 <label class="label-bold" for="email">Email <span class="label-required-star"
                         aria-hidden="true">*</span></label>
-                <input type="email" placeholder="Email" name="email" required />
+                <input type="email" placeholder="Email" name="email" value="{{ account.email if account else '' }}"
+                    required />
+
+                <label class="label-bold" for="birth_date">Birth Date <span class="label-required-star"
+                        aria-hidden="true">*</span></label>
+                <input type="date" name="birth_date" value="{{ account.birth_date if account else '' }}" required />
 
                 <!-- submit-button -->
                 <button type="submit">Save</button>

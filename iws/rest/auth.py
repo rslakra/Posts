@@ -3,7 +3,7 @@ import logging
 
 from flask import request, make_response, Response
 
-from framework.exception import AuthenticationException
+from framework.exception.auth import AuthenticationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ResponseModel
 from framework.security.jwt import TokenTypeEnum

@@ -5,9 +5,11 @@ import logging
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 
-from common.config import Config
-from framework.exception import DuplicateRecordException, ValidationException, NoRecordFoundException, \
-    AuthenticationException
+from config import Config
+from framework.exception.auth import AuthenticationException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import BaseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation

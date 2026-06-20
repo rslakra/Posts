@@ -1,105 +1,69 @@
 #
 # Author: Rohtash Lakra
-# Reference - https://realpython.com/flask-blueprint/
 #
-from flask import render_template, make_response, request, redirect, url_for
+import logging
 
-from admin.v1 import bp as bp_v1_admin
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from admin.v1 import admin_router
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ErrorModel
 
-# holds accounts in memory
+logger = logging.getLogger(__name__)
+templates = Jinja2Templates(directory="webapp/templates")
 accounts = []
 
 
-# Returns the next ID of the user
 def _find_next_id():
-    last_id = 0
-    if not accounts and len(accounts) > 0:
-        last_id = max(account["id"] for account in accounts)
-
-    return last_id + 1
+    return (max((account.get("id", 0) for account in accounts), default=0) + 1)
 
 
-# register a new user
-@bp_v1_admin.route("/")
-def index():
-    """
-    register a new user
-    """
-    return render_template("admin/index.html")
+@admin_router.get("/", include_in_schema=False)
+async def index(request: Request):
+    return templates.TemplateResponse("admin/index.html", {"request": request})
 
 
-# register a new user
-@bp_v1_admin.get("/register")
-def register():
-    """
-    register a new user
-    """
-    return render_template("admin/register.html")
+@admin_router.get("/register", include_in_schema=False)
+async def register(request: Request):
+    return templates.TemplateResponse("admin/register.html", {"request": request})
 
 
-@bp_v1_admin.post("/register")
-def post_register():
-    print(request)
-    if request.is_json:
-        user = request.get_json()
-        user["id"] = _find_next_id()
-        accounts.append(user)
-        return user, 201
-
-    return make_response(ErrorModel(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "Invalid JSON object!"))
+@admin_router.post("/register")
+async def post_register(request: Request):
+    user = await request.json()
+    user["id"] = _find_next_id()
+    accounts.append(user)
+    return JSONResponse(status_code=201, content=user)
 
 
-# login to an user
-@bp_v1_admin.get("/login")
-def login():
-    """
-    login to an user
-    """
-    return render_template("admin/login.html")
+@admin_router.get("/login", include_in_schema=False)
+async def login(request: Request):
+    return templates.TemplateResponse("admin/login.html", {"request": request})
 
 
-@bp_v1_admin.post("/login")
-def post_login():
-    print(request)
-    if request.is_json:
-        user = request.get_json()
-        print(f"user:{user}")
-        if not accounts:
-            for account in accounts:
-                if account['user_name'] == user.user_name:
-                    return make_response(HTTPStatus.OK, account)
+@admin_router.post("/login")
+async def post_login(request: Request):
+    user = await request.json()
+    for account in accounts:
+        if account.get("user_name") == user.get("user_name"):
+            return JSONResponse(status_code=200, content=account)
 
-    response = ErrorModel.get_error(HTTPStatus.NOT_FOUND, "Account is not registered!")
-    print(response)
-
-    return make_response(response)
+    response = ErrorModel.buildError(HTTPStatus.NOT_FOUND, "Account is not registered!")
+    return JSONResponse(status_code=response.status, content=response.model_dump(mode="json"))
 
 
-# view profile
-@bp_v1_admin.get("/profile")
-def profile():
-    """
-    view profile
-    """
-    return render_template("admin/profile.html")
+@admin_router.get("/profile", include_in_schema=False)
+async def profile(request: Request):
+    return templates.TemplateResponse("admin/profile.html", {"request": request})
 
 
-# forgot-password
-@bp_v1_admin.get("/forgot-password")
-def forgot_password():
-    """
-    forgot-password
-    """
-    return render_template("admin/forgot-password.html")
+@admin_router.get("/forgot-password", include_in_schema=False)
+async def forgot_password(request: Request):
+    return templates.TemplateResponse("admin/forgot-password.html", {"request": request})
 
 
-# Logout Page
-@bp_v1_admin.post("/logout")
-def logout():
-    """
-    About Us Page
-    """
-    # return render_template("index.html")
-    return redirect(url_for('iws.webapp.index'))
+@admin_router.post("/logout")
+async def logout():
+    return JSONResponse(status_code=200, content={"message": "Logged out"})

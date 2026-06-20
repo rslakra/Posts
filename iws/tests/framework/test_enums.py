@@ -1,6 +1,7 @@
 import unittest
 
-from framework.enums import BaseEnum, AutoUpperCase, AutoLowerCase, EnvType
+from framework.enums.base import BaseEnum, AutoUpperCase, AutoLowerCase
+from framework.enums.env_type import EnvType
 
 
 class EnumsTest(unittest.TestCase):

@@ -18,8 +18,8 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import Session, sessionmaker
 
-from framework.enums import DbType
-from framework.enums import KeyEnum
+from framework.enums.db_type import DbType
+from framework.enums.base import KeyEnum
 from framework.orm.sqlalchemy.schema import BaseSchema
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,10 @@ def createEngine(dbUri: Union[str, URL], debug: bool = False) -> Engine:
     The debug=True parameter indicates that SQL emitted by connections will be logged to standard out.
     """
     logger.debug(f"+createEngine({dbUri}, {debug})")
+    # Ensure SQLite parent directory exists for explicit DB_PATH file locations.
+    if isinstance(dbUri, str) and dbUri.startswith("sqlite:////"):
+        sqlite_file_path = "/" + dbUri.removeprefix("sqlite:////")
+        Path(sqlite_file_path).parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(dbUri, pool_recycle=3600, echo=debug)
     engine.execution_options(isolation_level="AUTOCOMMIT")
     logger.debug(f"-createEngine(), engine={engine}")

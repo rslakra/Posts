@@ -7,7 +7,9 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from rest.base import BaseRouter
-from framework.exception import DuplicateRecordException, ValidationException, NoRecordFoundException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ResponseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -26,8 +28,27 @@ class ContactRouter(BaseRouter):
         logger.debug(f"+create() => request={request}, args={request.query_params}")
         try:
             body = await self.json_or_none(request)
-            logger.debug(f"body={body}")
-            contact = Contact(**body) if body is not None else None
+            logger.debug(f"create() payload type={type(body)} payload={body}")
+            if body is None:
+                # Support HTML form submissions that post as x-www-form-urlencoded.
+                form = await request.form()
+                if form:
+                    body = {
+                        "first_name": form.get("first_name"),
+                        "last_name": form.get("last_name"),
+                        "country": form.get("country"),
+                        "subject": form.get("subject"),
+                    }
+                    logger.debug(f"create() mapped form payload={body}")
+            if body is None:
+                logger.warning("create() received empty/non-JSON payload for /rest/v1/contacts/")
+                response = ResponseModel.buildResponse(
+                    HTTPStatus.INVALID_DATA,
+                    message="'Contact' is not fully defined!"
+                )
+                logger.debug(f"-create() <= response={response}")
+                return JSONResponse(status_code=response.status, content=response.to_json())
+            contact = Contact(**body)
             logger.debug(f"contact={contact}")
             contactService = ContactService()
             contactService.validate(SchemaOperation.CREATE, contact)
@@ -40,6 +61,7 @@ class ContactRouter(BaseRouter):
         except DuplicateRecordException as ex:
             response = ResponseModel.buildResponseWithException(ex)
         except Exception as ex:
+            logger.exception("create() unexpected error in contacts endpoint")
             response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
         logger.debug(f"-create() <= response={response}")

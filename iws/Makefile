@@ -173,10 +173,21 @@ setup: install-packages
 #
 
 start-fastapi: ## Runs FastAPI Application
-start-fastapi: venv
+start-fastapi: venv stop-fastapi
 	@# Help: Runs FastAPI Application
 	@echo "Running FastAPI Application ..."
 	@$(PYTHON) -m uvicorn main:app --host 0.0.0.0 --port 8082 --reload
+
+stop-fastapi: ## Stops processes listening on 8082
+	@# Help: Stops stale FastAPI/uvicorn listeners
+	@PIDS=$$(lsof -ti tcp:8082 2>/dev/null || true); \
+	if [ -n "$$PIDS" ]; then \
+		echo "Stopping existing process(es) on 8082: $$PIDS"; \
+		kill $$PIDS; \
+		sleep 1; \
+	else \
+		echo "No existing process found on 8082"; \
+	fi
 
 start-flask: ## Runs Flask Application (wsgi)
 start-flask: venv

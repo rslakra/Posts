@@ -16,8 +16,7 @@
         <fieldset class="fieldset">
             <form action="{{ url_for('iws.api.v1.accounts.profile_view') }}" method="post">
                 <div class="img-container">
-                    <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar"
-                        class="avatar">
+                    <img src="{{ url_for('static', path='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
                 </div>
 
                 <label class="label-bold" for="username">Username <span class="label-required-star"

@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from framework.exception import ValidationException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.sqlalchemy.schema import SchemaOperation
 from framework.time import timeMillis
