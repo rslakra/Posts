@@ -153,9 +153,7 @@ DB_PASSWORD = Password
 ```
 
 
-### Run IWS Flask Application
-
-**By default**, Flask runs the application on **port 5000**.
+### Run IWS FastAPI Application
 
 
 ```shell
@@ -168,13 +166,6 @@ OR
 
 uvicorn main:app --reload
 # http://0.0.0.0:8082/health-check
-
-OR
-
-python -m flask --app wsgi run --port 8080 --debug
-# http://0.0.0.0:8082/health-check
-
-OR
 
 # Production Mode
 
@@ -191,10 +182,14 @@ gunicorn -c gunicorn.conf.py main:app
 
 **Note**:- You can stop the development server by pressing ```Ctrl+C``` in your terminal.
 
-### Access Flask Application
-- [IWS on port 8080](http://127.0.0.1:8080/posts)
-- [IWS on port 8000](http://127.0.0.1:8000/posts)
-- [IWS on port 5000](http://127.0.0.1:5000/posts)
+### Access FastAPI Application
+- [IWS Health Check](http://127.0.0.1:8082/health-check)
+- [IWS OpenAPI Docs](http://127.0.0.1:8082/docs)
+
+### Run Legacy Flask WebApp (optional)
+```shell
+python -m flask --app wsgi run --port 8080 --debug
+```
 
 
 ### Build Project
@@ -262,6 +257,7 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 # Reference
 
 - [Build a Scalable Flask Web Project From Scratch](https://realpython.com/flask-project/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Gunicorn - WSGI server](https://docs.gunicorn.org/en/latest/index.html)
 - [Python Packaging User Guide](https://packaging.python.org/en/latest/)
 - [The Twelve Factors App](https://12factor.net/)

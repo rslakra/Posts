@@ -171,7 +171,7 @@ class SQLite3Connector(DatabaseConnector):
             current_app.logger.debug(f"Initializing Database. configs={configs}")
             dbType = configs.get(KeyEnum.DB_TYPE.name)
             current_app.logger.debug(f"dbType={dbType}")
-            if dbType and KeyEnum.equals(KeyEnum.SQLALCHEMY, dbType):
+            if dbType and DbType.equals(DbType.SQLALCHEMY, dbType):
                 """Initializes the SQLAlchemy database"""
                 # Set up the SQLAlchemy Database to be a local file 'posts.db'
                 # SQLALCHEMY_DATABASE_URL
@@ -342,7 +342,7 @@ class AsyncSQLite3Connector(DatabaseConnector):
 
         dbType = configs.get(KeyEnum.DB_TYPE.name)
         logger.debug(f"dbType={dbType}")
-        if dbType and KeyEnum.equals(DbType.SQLALCHEMY, dbType):
+        if dbType and DbType.equals(DbType.SQLALCHEMY, dbType):
             """Initializes the SQLAlchemy database"""
             # Set up the SQLAlchemy Database to be a local file 'posts.db'
             # SQLALCHEMY_DATABASE_URL

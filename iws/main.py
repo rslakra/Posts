@@ -20,6 +20,7 @@ from sqlalchemy.types import Text
 
 from framework.orm.pydantic.model import ConfigSetting
 from globals import connector
+from rest import bp as rest_bp
 from rest.contact.model import Contact
 from rest.contact.service import ContactService
 
@@ -81,6 +82,7 @@ logger.debug(f"configSettings={configSettings}")
 logger.debug(f"configSettings dump={configSettings.model_dump()}")
 # init connector
 connector.init_db(app, configSettings.model_dump())
+app.include_router(rest_bp)
 
 
 # app.mount("/static", StaticFiles(directory="webapp/static"), name="static")

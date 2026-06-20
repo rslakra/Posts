@@ -142,42 +142,46 @@ clean:
 	find . -type f -name '*.py[co]' -delete
 
 
-setup: ## Sets up environment and installs requirements
-setup:
-	@# Help: Sets up environment and installs requirements
-	@echo "Setting up the Python environment ..."
-	python3 -m pip install virtualenv
-	python3 -m $(VENV) $(VENV)
-	#source $(VENV)/bin/activate
-	. $(ACTIVATE)
-	@echo
-	$(pwd)
-	@echo
-# 	#$(PIP) install --upgrade pip
-# 	$(PIP) install --upgrade pip
-# 	#$(PYTHON) -m pip install --upgrade pip
-# 	$(PYTHON) -m pip install -r requirements.txt
-
 #
-# Virtual Env Commands
+# Setup Environment Commands
 #
 
-install-packages:
-	@# Help: Upgrade PIP & Installs packages/dependencies
-	@echo "Upgrade PIP & Installs packages/dependencies ..."
-# 	source $(VENV)/bin/activate
-	$(PIP) install --upgrade pip
-	$(PIP) install -r requirements.txt
+venv: ## Creates virtual environment if missing
+venv:
+	@# Help: Creates virtual environment if missing
+	@if [ ! -x "$(PYTHON)" ]; then \
+		echo "Creating Python virtual environment ..."; \
+		python3 -m venv $(VENV); \
+	fi
+	@$(PYTHON) -m ensurepip --upgrade >/dev/null 2>&1 || true
+
+install-packages: ## Upgrades pip and installs requirements
+install-packages: venv
+	@# Help: Upgrades pip and installs requirements
+	@echo "Installing project packages ..."
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -r requirements.txt
+
+
+setup: ## Alias of install-packages target
+setup: install-packages
+	@# Help: Alias of install-packages target
 
 
 #
-# Run Commands
+# Start Application Commands
 #
 
-run: ## Runs the python application
-run: venv
-	@# Help: Runs the python application
-	@echo "Running Python Application ..."
+start-fastapi: ## Runs FastAPI Application
+start-fastapi: venv
+	@# Help: Runs FastAPI Application
+	@echo "Running FastAPI Application ..."
+	@$(PYTHON) -m uvicorn main:app --host 0.0.0.0 --port 8082 --reload
+
+start-flask: ## Runs Flask Application (wsgi)
+start-flask: venv
+	@# Help: Runs Flask Application (wsgi)
+	@echo "Running Flask Application ..."
 	@$(PYTHON) -m flask --app wsgi run --port 8080 --debug
 
 #

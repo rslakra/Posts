@@ -3,7 +3,8 @@
 #
 import logging
 
-from flask import request, make_response
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ResponseModel
@@ -21,4 +22,4 @@ def v2_route():
     response.addInstance(Role("v2-route-role2", False))
     response.addInstance(Role("v2-route-role3", True))
     logger.debug(f"response={response}")
-    return make_response(response.to_json(), response.status)
+    return JSONResponse(status_code=response.status, content=response.to_json())
