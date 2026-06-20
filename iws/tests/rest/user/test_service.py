@@ -83,7 +83,7 @@ class UserServiceTest(AbstractTestCase):
         self.assertTrue(type(context.exception) in [ValidationException])
         validationException = context.exception
         self.assertEqual(HTTPStatus.INVALID_DATA, validationException.httpStatus)
-        self.assertEquals(2, len(validationException.messages))
+        self.assertEqual(2, len(validationException.messages))
         self.assertEqual("User 'email' is required!", validationException.messages[0])
         self.assertEqual("User 'user_name' is required!", validationException.messages[1])
 
@@ -97,7 +97,7 @@ class UserServiceTest(AbstractTestCase):
         self.assertTrue(type(context.exception) in [ValidationException])
         validationException = context.exception
         self.assertEqual(HTTPStatus.INVALID_DATA, validationException.httpStatus)
-        self.assertEquals(1, len(validationException.messages))
+        self.assertEqual(1, len(validationException.messages))
         self.assertEqual("User 'id' is required!", validationException.messages[0])
 
         logger.debug("-test_validate_error()")
@@ -134,7 +134,7 @@ class UserServiceTest(AbstractTestCase):
         logger.debug(f"user={self.user}")
         self.assertIsNotNone(self.user)
         self.assertIsNotNone(self.user.id)
-        self.assertEquals("Roh", self.user.first_name)
+        self.assertEqual("Roh", self.user.first_name)
 
         # find registered user
         user = self.userService.findByFilter({"email": self.user.email})[0]

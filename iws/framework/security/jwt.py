@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import auto, unique
 
 import jwt
+import requests
 
 from framework.enums import BaseEnum
 from framework.exception import AuthenticationException

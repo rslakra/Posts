@@ -1,117 +1,119 @@
 # Posts
 
----
+This repository contains the Posts project: a **Spring Boot backend** (be), an **external web service** (ews), and an **internal web service** (iws).
 
-The ```posts``` contains both an internal and external web services of the project.
+## Project structure
 
-
-
-## Project Structure
 ```
-/
-├── <module>                    # The module service
-├── Posts                       # The posts service
-│    ├── ews                    # An external web-service
-│    ├── iws                    # An internal web-service
-│    ├── .env                   # The .env file
-│    ├── .gitignore             # The .gitignore file
-│    ├── .pylintrc              # The .pylintrc file
-│    ├── README.md              # Instructions and helpful links
-│    ├── robots.txt             # tells which URLs the search engine crawlers can access on your site
-│    ├── robots.txt             # tells which URLs the search engine crawlers can access on your site
-│    ├── runEWSApp.sh           # An EWS run script
-│    └── runIWSApp.sh           # An IWS run script
-└── <module>
+Posts/
+├── be/                     # Spring Boot backend (Java 21)
+├── ews/                    # External web service (Python/Flask)
+├── iws/                    # Internal web service (Python)
+├── version.sh              # Shared version for be build/run scripts
+├── runEWSApp.sh            # Run EWS app
+├── runIWSApp.sh            # Run IWS app
+├── .gitignore
+├── .pylintrc
+├── Makefile
+├── LICENSE
+└── README.md
 ```
 
-## Local Development
+## Backend (be)
 
-### Check python settings
+Spring Boot 3.5, Java 21. REST API for users, posts, comments, tags; auth (register/login); H2 or MySQL; Liquibase for schema.
+
+- **Build & run:** From `be/`: `./buildMaven.sh`, `./runMaven.sh` (version from project root `version.sh`)
+- **API base:** `http://localhost:8080/api/v1` (e.g. `/auth/register`, `/auth/login`, `/users`, `/posts`)
+- **H2 console:** `http://localhost:8080/h2` (when using H2)
+
+See [be/README.md](./be/README.md) for API details, database setup, and project layout.
+
+## Local development (EWS & IWS – Python)
+
+### Check Python settings
+
 ```shell
 python3 --version
 python3 -m pip --version
 python3 -m ensurepip --default-pip
 ```
 
-### Setup a virtual environment
-```
+### Set up a virtual environment
+
+```shell
 python3 -m pip install virtualenv
 python3 -m venv venv
-source deactivate
-source venv/bin/activate
+source venv/bin/activate   # or: source venv/Scripts/activate on Windows
 ```
 
-### Upgrade PIP Requirements (Dependencies)
+### Upgrade pip and install dependencies
+
 ```shell
 pip install --upgrade pip
+pip install -r ews/requirements.txt   # or iws as needed
 ```
 
-### Configuration Setup
+### Configuration
 
-- Create or update local .env configuration file.
+Create or update a local `.env` (e.g. in ews/ or iws/):
 
 ```shell
-touch .env
-HOST = 127.0.0.1
-PORT = 8080
-DEBUG = True
-DEFAULT_POOL_SIZE = 1
-RDS_POOL_SIZE = 1
+HOST=127.0.0.1
+PORT=8080
+DEBUG=True
+DEFAULT_POOL_SIZE=1
+RDS_POOL_SIZE=1
 ```
 
-**By default**, Flask will run the application on **port 5000**.
+By default, Flask runs on port 5000.
 
-## EWS & IWS Services Instructions
+### EWS & IWS
+
 - [EWS Application](./ews/README.md)
 - [IWS Application](./iws/README.md)
 
-### Build Service
+### Build (Python)
+
 ```shell
 python3 -m build
 ```
 
-### Save Requirements (Dependencies)
+### Save requirements
+
 ```shell
 pip freeze > requirements.txt
 ```
 
-## Unit Tests
+### Unit tests
+
 ```shell
 python -m unittest discover -s ./tests -p "test_*.py"
 ```
 
+## Enable sudo without password on macOS
 
-# Enable ```sudo``` without a password on MacOS
+**Option 1:** Create `~/password` with your password, then:
 
-- Option #1
-
-Create a file name password under your root folder, i.e. ```~/password``` that contains your password.
-
-Then run the following command to access without entering password via terminal:
 ```shell
 echo password | sudo -S cat /etc/sudoers
 ```
 
-- Option #2
+**Option 2:** Run `sudo visudo`, find the admin group line `%admin ALL = (ALL) ALL`, and change to:
 
-Modify sudoers file using the following command:
-```shell
-sudo visudo
-```
-
-Then find the ```admin``` group permission section: ```%admin ALL = (ALL) ALL```.
-Change to add NOPASSWD:
 ```text
-%admin		ALL = (ALL) NOPASSWD:ALL
+%admin  ALL = (ALL) NOPASSWD:ALL
 ```
-Save the file as normal ```vi```` editor command.
 
+Save and exit.
 
+## Reference
 
-# Reference
-
-- [Gunicorn - WSGI server](https://docs.gunicorn.org/en/latest/index.html)
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [be/README.md](./be/README.md) – backend API, database, structure
+- [Gunicorn – WSGI server](https://docs.gunicorn.org/en/latest/index.html)
 - [Python Packaging User Guide](https://packaging.python.org/en/latest/)
 
-# Author
-- Rohtash Lakra
+## Author
+
+Rohtash Lakra
