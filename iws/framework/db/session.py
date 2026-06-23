@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class SessionManager:
 
     def __init__(self, engine, metadata):
-        """Initialize"""
+        """Initialize Session Manager"""
         self.pool = None
         self.db_uri = None
         self.engine = engine

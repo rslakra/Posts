@@ -9,40 +9,40 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="{{ url_for('iws.webapp.index') }}">
-        <img style="width: 28px;" src="{{ url_for('static', filename='images/webapp-logo.png') }}" />
+      <a class="navbar-brand" href="/">
+        <img style="width: 28px;" src="{{ url_for('static', path='images/webapp-logo.png') }}" />
       </a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li><a href="{{ url_for('iws.webapp.index') }}">Home</a></li>
-        <li><a href="{{ url_for('iws.webapp.about') }}">About</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/about-us">About</a></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
             aria-expanded="false">Services <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="{{ url_for('iws.api.v1.posts.index') }}">Posts</a></li>
+            <li><a href="/posts/">Posts</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="{{ url_for('iws.api.v1.comments.index') }}">Comments</a></li>
+            <li><a href="/comments/">Comments</a></li>
             <li role="separator" class="divider"></li>
           </ul>
         </li>
-        <li><a href="{{ url_for('iws.webapp.clients') }}">Clients</a></li>
-        <li><a href="{{ url_for('iws.webapp.contact') }}">Contact</a></li>
-        <li><a href="{{ url_for('iws.api.v1.blogs.index') }}">Blog</a></li>
+        <li><a href="/clients">Clients</a></li>
+        <li><a href="/contact-us">Contact</a></li>
+        <li><a href="/blogs/">Blog</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="{{ url_for('iws.api.v1.accounts.login') }}">Login</a></li>
+        <li><a href="/accounts/login">Login</a></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
             aria-expanded="false">Account <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="{{ url_for('iws.api.v1.accounts.notifications') }}">Notifications</a></li>
-            <li><a href="{{ url_for('iws.api.v1.accounts.profile_view') }}">Manage Account</a></li>
+            <li><a href="/accounts/notifications">Notifications</a></li>
+            <li><a href="/accounts/profile">Manage Account</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="{{ url_for('iws.api.v1.admin.index') }}">Admin</a></li>
+            <li><a href="/admin/">Admin</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="{{ url_for('iws.webapp.logout') }}">Logout</a></li>
+            <li><a href="/logout">Logout</a></li>
           </ul>
         </li>
       </ul>
@@ -53,8 +53,8 @@
 <!-- Sidebar -->
 <div id="sideNavBarDiv" class="sidenav">
   <a href="javascript:void(0)" class="closebtn" onclick="closeSideNavbar();">&times;</a>
-  <a href="{{ url_for('iws.webapp.about') }}">About</a>
-  <a href="{{ url_for('iws.webapp.services') }}">Services</a>
-  <a href="{{ url_for('iws.webapp.clients') }}">Clients</a>
-  <a href="{{ url_for('iws.webapp.contact') }}">Contact</a>
+  <a href="/about-us">About</a>
+  <a href="/services">Services</a>
+  <a href="/clients">Clients</a>
+  <a href="/contact-us">Contact</a>
 </div>

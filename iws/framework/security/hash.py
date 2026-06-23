@@ -5,7 +5,7 @@
 import hashlib
 import logging
 
-from framework.enums import BaseEnum
+from framework.enums.base import BaseEnum
 from framework.utils import Utils
 
 logger = logging.getLogger(__name__)

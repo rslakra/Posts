@@ -6,7 +6,9 @@ from typing import List, Optional, Dict, Any
 
 from werkzeug.datastructures import MultiDict
 
-from framework.exception import DuplicateRecordException, ValidationException, RecordNotFoundException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import BaseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -135,7 +137,7 @@ class RoleService(AbstractService):
         # self.validate(SchemaOperation.UPDATE, role)
         # check record exists by id
         if not self.existsByFilter({"id": role.id}):
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, f"Role doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, f"Role doesn't exist!")
 
         roleSchemas = self.roleRepository.filter({"id": role.id})
         roleSchema = roleSchemas[0]
@@ -163,7 +165,7 @@ class RoleService(AbstractService):
         if self.existsByFilter(filter):
             self.roleRepository.delete(filter)
         else:
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Role doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Role doesn't exist!")
 
         logger.debug(f"-delete()")
 
@@ -343,7 +345,7 @@ class PermissionService(AbstractService):
         self.validate(SchemaOperation.UPDATE, modelObject)
         # check record exists by id
         if not self.existsByFilter({"id": modelObject.id}):
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, f"Permission doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, f"Permission doesn't exist!")
 
         schemaObject = self.permissionRepository.findById(PermissionSchema, modelObject.id)
         logger.debug(f"schemaObject={schemaObject}")
@@ -370,6 +372,6 @@ class PermissionService(AbstractService):
         if self.existsByFilter(filter):
             self.permissionRepository.delete(filter)
         else:
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Permission doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Permission doesn't exist!")
 
         logger.debug(f"-delete()")

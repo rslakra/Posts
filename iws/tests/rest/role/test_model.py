@@ -3,7 +3,7 @@ import unittest
 
 from pydantic import ValidationError
 
-from framework.datetime import nowMillis
+from framework.time import timeMillis
 from rest.role.model import Role, Permission
 from tests.base import AbstractTestCase
 
@@ -46,8 +46,8 @@ class RoleModelTest(AbstractTestCase):
 
     def test_create_role(self):
         logger.debug("+test_create_role()")
-        # create role's object
-        roleName = f"RoleModel-{nowMillis()}"
+        # create object
+        roleName = f"RoleModel-{timeMillis()}"
         roleModel = Role(name=roleName, active=True, meta_data={"description": "A model's role"})
         logger.debug(f"roleModel={roleModel}")
         self.assertIsNotNone(roleModel)
@@ -57,11 +57,11 @@ class RoleModelTest(AbstractTestCase):
 
     def test_create_role_with_permissions(self):
         logger.debug("+test_create_role_with_permissions()")
-        roleName = f"MultiPermissions-{nowMillis()}"
+        roleName = f"MultiPermissions-{timeMillis()}"
         roleWithPermissions = Role(name=roleName)
-        readPermission = Permission(name=f"Read-{nowMillis()}", description="Allows read access", active=True)
-        writePermission = Permission(name=f"Write-{nowMillis()}", description="Allows write access", active=True)
-        executePermission = Permission(name=f"Execute-{nowMillis()}", description="Allows execute access", active=True)
+        readPermission = Permission(name=f"Read-{timeMillis()}", description="Allows read access", active=True)
+        writePermission = Permission(name=f"Write-{timeMillis()}", description="Allows write access", active=True)
+        executePermission = Permission(name=f"Execute-{timeMillis()}", description="Allows execute access", active=True)
         roleWithPermissions.permissions.extend([readPermission, writePermission, executePermission])
         logger.debug(f"roleWithPermissions={roleWithPermissions}")
 

@@ -27,7 +27,7 @@ rds_pool_size = int(os.getenv('RDS_POOL_SIZE', 1))
 rds_pool_size += default_pool_size
 # validate the pool size
 if (rds_pool_size - default_pool_size) < 1:
-    raise Exception('Threads has to be higher that 0.')
+    raise Exception('PoolSize should be higher that 0!')
 
 # The socket to bind.
 host = os.getenv('HOST', '0.0.0.0')

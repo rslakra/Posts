@@ -4,7 +4,9 @@
 import logging
 from typing import List, Optional, Dict, Any
 
-from framework.exception import DuplicateRecordException, ValidationException, RecordNotFoundException
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import BaseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -28,25 +30,30 @@ class ContactService(AbstractService):
         # super().validate(operation, contact)
         errorMessages = []
 
-        # validate the object
-        if not contact:
+        # Validate operation first for clearer diagnostics in logs/errors.
+        if operation is None:
+            errorMessages.append("'Operation' is not fully defined!")
+
+        # Validate object before accessing any contact fields.
+        if contact is None:
             errorMessages.append("'Contact' is not fully defined!")
 
-        match operation.name:
-            case SchemaOperation.CREATE.name:
-                # validate the required fields
-                if not contact.first_name:
-                    errorMessages.append("Contact 'first_name' is required!")
-                if not contact.last_name:
-                    errorMessages.append("Contact 'last_name' is required!")
-                if not contact.country:
-                    errorMessages.append("Contact 'country' is required!")
-                if not contact.subject:
-                    errorMessages.append("Contact 'subject' is required!")
+        if not errorMessages:
+            match operation.name:
+                case SchemaOperation.CREATE.name:
+                    # validate the required fields
+                    if not contact.first_name:
+                        errorMessages.append("Contact 'first_name' is required!")
+                    if not contact.last_name:
+                        errorMessages.append("Contact 'last_name' is required!")
+                    if not contact.country:
+                        errorMessages.append("Contact 'country' is required!")
+                    if not contact.subject:
+                        errorMessages.append("Contact 'subject' is required!")
 
-            case SchemaOperation.UPDATE.name:
-                if not contact.id:
-                    errorMessages.append("Contact 'id' is required!")
+                case SchemaOperation.UPDATE.name:
+                    if not contact.id:
+                        errorMessages.append("Contact 'id' is required!")
 
         # throw an error if any validation error
         if errorMessages and len(errorMessages) > 0:
@@ -127,7 +134,7 @@ class ContactService(AbstractService):
         """Updates the contact"""
         logger.debug(f"+update({contact})")
         if not self.existsByFilter({"id": contact.id}):
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
 
         contactSchemas = self.repository.filter({"id": contact.id})
         contactSchema = contactSchemas[0]
@@ -156,6 +163,6 @@ class ContactService(AbstractService):
         if self.existsByFilter(filter):
             self.repository.delete(filter)
         else:
-            raise RecordNotFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
+            raise NoRecordFoundException(HTTPStatus.NOT_FOUND, "Contact doesn't exist!")
 
         logger.debug(f"-delete()")

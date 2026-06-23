@@ -35,7 +35,6 @@ class RoleRepository(SqlAlchemyRepository):
                     if len(filters) == 1 and "id" in filters.keys() and isinstance(filters.get("id"), list):
                         schemaObjects = session.query(RoleSchema).filter(RoleSchema.id.in_(filters.get("id"))).all()
                     else:
-                        logger.debug(f"filters={filters}, filters={filters.keys()}")
                         schemaObjects = session.query(RoleSchema).filter_by(**filters).all()
                 else:
                     schemaObjects = session.query(RoleSchema).all()
