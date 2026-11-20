@@ -1,0 +1,6 @@
+# Virtual environment, caches and the files created by the Makefile ('make setup/start')
+venv/
+__pycache__/
+*.py[co]
+.ews.pid
+ews.log
