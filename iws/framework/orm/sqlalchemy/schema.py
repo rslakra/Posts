@@ -17,7 +17,7 @@ from sqlalchemy import func, orm, String, event, inspect
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.orm.query import attributes
 
-from framework.enums import AutoUpperCase
+from framework.enums.base import AutoUpperCase
 
 logger = logging.getLogger(__name__)
 

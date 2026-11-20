@@ -2,12 +2,13 @@ import json
 import os
 import secrets
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-from framework.enums import EnvType
+from framework.enums.env_type import EnvType
+from settings import ENV_FILE
 
-# loads .env files
-load_dotenv()
+# loads the env file ('.env', or '.env.test' for tests)
+load_dotenv(find_dotenv(ENV_FILE))
 
 app_config = None
 

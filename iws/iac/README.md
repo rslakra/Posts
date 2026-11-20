@@ -181,7 +181,7 @@ basicAuth credentials are "admin:pass", it is recommended you change this in you
 
 # Reference
 
-- [Build a Scalable Flask Web Project From Scratch](https://kubeyaml.com/)
+- [KubeYAML - Kubernetes YAML validator](https://kubeyaml.com/)
 - [connection-refused-on-pushing-a-docker-image](https://stackoverflow.com/questions/52698748/connection-refused-on-pushing-a-docker-image)
 
 

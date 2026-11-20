@@ -1,26 +1,26 @@
 #
 # Author: Rohtash Lakra
 #
-from flask import Blueprint
-from admin.v1 import bp as admin_v1_bp
-from account.v1 import bp as account_v1_bp
-from post.v1 import bp as post_v1_bp
-from blog.v1 import bp as blog_v1_bp
-from comment.v1 import bp as comment_v1_bp
+from fastapi import APIRouter
 
-bp = Blueprint("v1", __name__, url_prefix="/v1")
-"""
-Create an instance of Blueprint prefixed with '/bp' as named bp.
-Parameters:
-    name: represents the name of the blueprint, which Flask’s routing mechanism uses and identifies it in the project.
-    __name__: The Blueprint’s import name, which Flask uses to locate the Blueprint’s resources.
-    url_prefix: the path to prepend to all of the Blueprint’s URLs.
-"""
+from admin.v1 import admin_router
+from account.v1 import account_router
+from post.v1 import post_router
+from blog.v1 import blog_router
+from comment.v1 import comment_router
 
+bp = APIRouter(prefix="/v1")
+"""
+Version 1 router. Each feature router contributes its own prefix (e.g. `/accounts`), so the final paths look like
+`/api/v1/accounts/...`.
+
+The same feature routers are also served by the web application (`webapp.routes`) and documented there, so they are
+excluded from the OpenAPI schema here to avoid duplicated operations.
+"""
 
 # register end-points here
-bp.register_blueprint(admin_v1_bp)
-bp.register_blueprint(account_v1_bp)
-bp.register_blueprint(post_v1_bp)
-bp.register_blueprint(blog_v1_bp)
-bp.register_blueprint(comment_v1_bp)
+bp.include_router(admin_router, include_in_schema=False)
+bp.include_router(account_router, include_in_schema=False)
+bp.include_router(post_router, include_in_schema=False)
+bp.include_router(blog_router, include_in_schema=False)
+bp.include_router(comment_router, include_in_schema=False)

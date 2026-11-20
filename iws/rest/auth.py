@@ -1,61 +1,56 @@
-import functools
+#
+# Author: Rohtash Lakra
+#
 import logging
 
-from flask import request, make_response, Response
+from fastapi import Request
 
-from framework.exception import AuthenticationException
+from framework.exception.auth import AuthenticationException
 from framework.http import HTTPStatus
-from framework.orm.pydantic.model import ResponseModel
-from framework.security.jwt import TokenTypeEnum
+from framework.security.jwt import TokenType
 from rest.user.service import UserService
 
 logger = logging.getLogger(__name__)
 
 
-def authErrorResponse(message: str = None) -> Response:
-    logger.error(f'httpStatus={HTTPStatus.UNAUTHORIZED}, message={message}')
-    authException = AuthenticationException(HTTPStatus.UNAUTHORIZED, messages=[message])
-    response = ResponseModel.buildResponseWithException(authException)
-    return make_response(response.to_json(), response.status)
-
-
 # TODO- validate token expiry
-def auth(func_name=None, role=None):
-    assert callable(func_name) or func_name is None
+async def authenticate(request: Request):
+    """FastAPI dependency that authenticates the bearer token of the request and returns the authenticated user.
 
-    def _decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            bearer_token = request.headers.get('Authorization', None)
-            # validate request contains bearer token
-            if not bearer_token:
-                return authErrorResponse('Missing Bearer Token in the request!')
+    Usage:
+        @router.get("/protected", dependencies=[Depends(authenticate)])
+        @router.get("/me")
+        async def me(user=Depends(authenticate)): ...
 
-            # validate the token is valid
-            try:
-                auth_token = parse_bearer_token(bearer_token)
-            except ValueError as ex:
-                return authErrorResponse("Invalid Token!")
+    Raises:
+        AuthenticationException: (rendered as 401 by the application's exception handler) if the token is missing,
+        malformed or doesn't belong to an authenticated user.
+    """
+    bearer_token = request.headers.get('Authorization', None)
+    # validate request contains bearer token
+    if not bearer_token:
+        raise AuthenticationException(HTTPStatus.UNAUTHORIZED, messages=['Missing Bearer Token in the request!'])
 
-            userService = UserService()
-            userObject = userService.authenticate(TokenTypeEnum.AUTH, auth_token)
-            logger.debug(f"userObject={userObject}")
-            if userObject and userObject.isAuthenticated():
-                logger.debug(f"AUTH userObject={userObject}")
-                return func(*args, **kwargs)
+    # validate the token is valid
+    try:
+        auth_token = parse_bearer_token(bearer_token)
+    except ValueError:
+        raise AuthenticationException(HTTPStatus.UNAUTHORIZED, messages=['Invalid Token!'])
 
-            # if reaches here, always throw an error
-            return authErrorResponse(HTTPStatus.UNAUTHORIZED.name)
+    userService = UserService()
+    userObject = userService.authenticate(TokenType.AUTH, auth_token)
+    logger.debug(f"userObject={userObject}")
+    if userObject and userObject.isAuthenticated():
+        return userObject
 
-        return wrapper
-
-    return _decorator(func_name) if callable(func_name) else _decorator
+    # if reaches here, always throw an error
+    raise AuthenticationException(HTTPStatus.UNAUTHORIZED, messages=[HTTPStatus.UNAUTHORIZED.name])
 
 
 def parse_bearer_token(auth_header):
     """
     Parses the bearer token from an Authorization header.
-    
+
     Parameters:
     auth_header (str): The Authorization header from which to parse the token.
 

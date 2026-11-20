@@ -145,28 +145,19 @@ class AbstractJSONHandler(JSONEncoder):
                 (to raise a ``TypeError``).
         """
 
-        # print(f"default -> entity: {type(entity)}")
         if isinstance(entity, AbstractJSONHandler):
-            # return self.model_dump()
-            # return json.dumps(self)
-            # obj, *, skipkeys=False, ensure_ascii=True, check_circular=True,
-            #         allow_nan=True, cls=None, indent=None, separators=None,
-            #         default=None, sort_keys=False, **kw
-            # return
-            # json.dumps(self, default=lambda entity: entity.__dict__, sort_keys=True, indent=2, separators =(",", ":"))
-            # return json.dumps(self, default=lambda entity: entity.__dict__, indent=2)
-            # return json.dumps(self, default=self.default(), sort_keys=True, indent=4)
-            # return json.dumps(self, sort_keys=True, indent=4)
-
-            # skip JSONEncoder properties
-            self._skipDefaultKeys(entity)
-
-            # tempObject = copy.deepcopy(entity)
-            # for path in skipKeys:
-            #     del reduce(op.getitem, path[:-1], tempObject)[path[-1]]
+            # JSONEncoder.default() must return a JSON-serializable Python object
+            # (dict/list/scalar), not an already encoded JSON string.
             #
-            # return json.dumps(tempObject, default=lambda obj: obj.__dict__, indent=2)
-            return json.dumps(entity, default=lambda obj: obj.__dict__, indent=2)
+            # Historical note:
+            # This method previously returned `json.dumps(...)` here. That worked for
+            # debug prints, but API responses started returning quoted JSON strings
+            # (double-encoded payloads). We now return a plain dict and let callers
+            # choose when to render a JSON string.
+            payload = dict(entity.__dict__)
+            for key in AbstractJSONHandler._jsonEncKeys:
+                payload.pop(key, None)
+            return payload
 
         # Let the base class default method raise the TypeError
         return super().default(entity)

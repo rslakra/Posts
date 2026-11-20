@@ -1,14 +1,15 @@
 #
 # Author: Rohtash Lakra
-# References:
-# - https://realpython.com/flask-blueprint/
-# - https://flask.palletsprojects.com/en/2.3.x/tutorial/views/#require-authentication-in-other-views
 #
 import logging
 
-from flask import make_response, request
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-from framework.exception import DuplicateRecordException, ValidationException, RecordNotFoundException
+from rest.base import BaseRouter
+from framework.exception.duplicate import DuplicateRecordException
+from framework.exception.not_found import NoRecordFoundException
+from framework.exception.validation import ValidationException
 from framework.http import HTTPStatus
 from framework.orm.pydantic.model import ResponseModel
 from framework.orm.sqlalchemy.schema import SchemaOperation
@@ -19,142 +20,152 @@ from rest.contact.v1 import bp as bp_contact_v1
 logger = logging.getLogger(__name__)
 
 
-@bp_contact_v1.post("/")
-def create():
-    logger.debug(f"+create() => request={request}, args={request.args}, is_json:{request.is_json}")
-    try:
-        if request.is_json:
-            body = request.get_json()
-        elif request.form:
-            body = request.form.to_dict()
+class ContactRouter(BaseRouter):
+    """ContactRouter handles CRUD operations for contact resources."""
 
-        logger.debug(f"body={body}")
-        contact = Contact(**body)
-        logger.debug(f"contact={contact}")
-        contactService = ContactService()
-        contactService.validate(SchemaOperation.CREATE, contact)
-        contact = contactService.create(contact)
-        logger.debug(f"contact={contact}")
+    async def create(self, request: Request):
+        """Create a contact."""
+        logger.debug(f"+create() => request={request}, args={request.query_params}")
+        try:
+            body = await self.json_or_none(request)
+            logger.debug(f"create() payload type={type(body)} payload={body}")
+            if body is None:
+                # Support HTML form submissions that post as x-www-form-urlencoded.
+                form = await request.form()
+                if form:
+                    body = {
+                        "first_name": form.get("first_name"),
+                        "last_name": form.get("last_name"),
+                        "country": form.get("country"),
+                        "subject": form.get("subject"),
+                    }
+                    logger.debug(f"create() mapped form payload={body}")
+            if body is None:
+                logger.warning("create() received empty/non-JSON payload for /rest/v1/contacts/")
+                response = ResponseModel.buildResponse(
+                    HTTPStatus.INVALID_DATA,
+                    message="'Contact' is not fully defined!"
+                )
+                logger.debug(f"-create() <= response={response}")
+                return JSONResponse(status_code=response.status, content=response.to_json())
+            contact = Contact(**body)
+            logger.debug(f"contact={contact}")
+            contactService = ContactService()
+            contactService.validate(SchemaOperation.CREATE, contact)
+            contact = contactService.create(contact)
+            logger.debug(f"contact={contact}")
+            response = ResponseModel(status=HTTPStatus.CREATED.statusCode, message="Contact is successfully created.")
+            response.addInstance(contact)
+        except ValidationException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except DuplicateRecordException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except Exception as ex:
+            logger.exception("create() unexpected error in contacts endpoint")
+            response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
-        # build success response
-        response = ResponseModel(status=HTTPStatus.CREATED.statusCode, message="Contact is successfully created.")
-        response.addInstance(contact)
-        # response = response.to_json()
-    except ValidationException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except DuplicateRecordException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except Exception as ex:
-        response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
+        logger.debug(f"-create() <= response={response}")
+        return JSONResponse(status_code=response.status, content=response.to_json())
 
-    logger.debug(f"-create() <= response={response}")
-    return make_response(response.to_json(), response.status)
+    async def bulkCreate(self, request: Request):
+        """Create multiple contacts in one request."""
+        logger.debug(f"+bulkCreate() => request={request}, args={request.query_params}")
+        try:
+            roles = []
+            body = await self.json_or_none(request)
+            if body is not None:
+                logger.debug(f"type={type(body)}, body={body}")
+                if isinstance(body, list):
+                    roles = [Contact(**entry) for entry in body]
+                elif isinstance(body, dict):
+                    roles.append(Contact(**body))
 
-
-@bp_contact_v1.post("/batch")
-def bulkCreate():
-    logger.debug(f"+bulkCreate() => request={request}, args={request.args}, is_json:{request.is_json}")
-    try:
-        roles = []
-        if request.is_json:
-            body = request.get_json()
-            logger.debug(f"type={type(body)}, body={body}")
-            if isinstance(body, list):
-                roles = [Contact(**entry) for entry in body]
-            elif isinstance(body, dict):
-                roles.append(Contact(**body))
-            else:
-                # handle form fields here.
-                body = request.form.to_dict()
-                roles.append(Contact(**body))
-
-        logger.debug(f"roles={roles}")
-        contactService = ContactService()
-        contactService.validates(SchemaOperation.CREATE, roles)
-        roles = contactService.bulkCreate(roles)
-        logger.debug(f"roles={roles}")
-
-        # build success response
-        response = ResponseModel(status=HTTPStatus.CREATED.statusCode, message="Roles are successfully created.")
-        response.addInstances(roles)
-    except ValidationException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except DuplicateRecordException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except Exception as ex:
-        response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
-
-    logger.debug(f"-bulkCreate() <= response={response}")
-    return make_response(response.to_json(), response.status)
-
-
-@bp_contact_v1.get("/")
-def get():
-    logger.debug(f"+get() => request={request}, args={request.args}, is_json:{request.is_json}")
-    try:
-        contactService = ContactService()
-        roles = contactService.findByFilter(request.args)
-
-        # build success response
-        response = ResponseModel.buildResponse(HTTPStatus.OK)
-        if roles:
+            logger.debug(f"roles={roles}")
+            contactService = ContactService()
+            contactService.validates(SchemaOperation.CREATE, roles)
+            roles = contactService.bulkCreate(roles)
+            logger.debug(f"roles={roles}")
+            response = ResponseModel(status=HTTPStatus.CREATED.statusCode, message="Roles are successfully created.")
             response.addInstances(roles)
-        else:
-            response.message = "No Records Exist!"
-    except Exception as ex:
-        response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
+        except ValidationException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except DuplicateRecordException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except Exception as ex:
+            response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
-    logger.debug(f"-get() <= response={response}")
-    return make_response(response.to_json(), response.status)
+        logger.debug(f"-bulkCreate() <= response={response}")
+        return JSONResponse(status_code=response.status, content=response.to_json())
 
+    async def get(self, request: Request):
+        """Fetch contacts using optional query filters."""
+        logger.debug(f"+get() => request={request}, args={request.query_params}")
+        try:
+            contactService = ContactService()
+            roles = contactService.findByFilter(self.query_params(request))
+            response = ResponseModel.buildResponse(HTTPStatus.OK)
+            if roles:
+                response.addInstances(roles)
+            else:
+                response.message = "No Records Exist!"
+        except Exception as ex:
+            response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
-@bp_contact_v1.put("/")
-def update():
-    logger.debug(f"+update() => request={request}, args={request.args}, is_json:{request.is_json}")
-    try:
-        if request.is_json:
-            body = request.get_json()
-            logger.debug(f"body={body}")
-            contact = Contact(**body)
+        logger.debug(f"-get() <= response={response}")
+        return JSONResponse(status_code=response.status, content=response.to_json())
+
+    async def update(self, request: Request):
+        """Update an existing contact."""
+        logger.debug(f"+update() => request={request}, args={request.query_params}")
+        try:
+            body = await self.json_or_none(request)
+            contact = None
+            if body is not None:
+                logger.debug(f"body={body}")
+                contact = Contact(**body)
+                logger.debug(f"contact={contact}")
+
+            contactService = ContactService()
+            contactService.validate(SchemaOperation.UPDATE, contact)
+            contact = contactService.update(contact)
             logger.debug(f"contact={contact}")
+            response = ResponseModel(status=HTTPStatus.OK.statusCode, message="Contact is successfully updated.")
+            response.addInstance(contact)
+        except ValidationException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except NoRecordFoundException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except Exception as ex:
+            response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
 
-        contactService = ContactService()
-        contactService.validate(SchemaOperation.UPDATE, contact)
-        contact = contactService.update(contact)
-        logger.debug(f"contact={contact}")
+        logger.debug(f"-update() <= response={response}")
+        return JSONResponse(status_code=response.status, content=response.to_json())
 
-        # build success response
-        response = ResponseModel(status=HTTPStatus.OK.statusCode, message="Contact is successfully updated.")
-        response.addInstance(contact)
-    except ValidationException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except RecordNotFoundException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except Exception as ex:
-        response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
+    async def delete(self, id: int, request: Request):
+        """Delete a contact by id."""
+        logger.debug(f"+delete({id}) => request={request}, args={request.query_params}")
+        try:
+            body = await self.json_or_none(request)
+            if body is not None:
+                logger.debug(f"body={body}")
+                contact = Contact(**body)
+                logger.debug(f"contact={contact}")
 
-    logger.debug(f"-update() <= response={response}")
-    return make_response(response.to_json(), response.status)
+            contactService = ContactService()
+            contactService.delete(id)
+            response = ResponseModel(status=HTTPStatus.OK.statusCode, message="Contact is successfully deleted.")
+        except NoRecordFoundException as ex:
+            response = ResponseModel.buildResponseWithException(ex)
+        except Exception as ex:
+            response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
+
+        logger.debug(f"-delete() <= response={response}")
+        return JSONResponse(status_code=response.status, content=response.to_json())
 
 
-@bp_contact_v1.delete("/<id>")
-def delete(id: int):
-    logger.debug(f"+delete({id}) => request={request}, args={request.args}, is_json:{request.is_json}")
-    try:
-        if request.is_json:
-            body = request.get_json()
-            logger.debug(f"body={body}")
-            contact = Contact(**body)
-            logger.debug(f"contact={contact}")
-
-        contactService = ContactService()
-        contactService.delete(id)
-        # build success response
-        response = ResponseModel(status=HTTPStatus.OK.statusCode, message="Contact is successfully deleted.")
-    except RecordNotFoundException as ex:
-        response = ResponseModel.buildResponseWithException(ex)
-    except Exception as ex:
-        response = ResponseModel.buildResponse(HTTPStatus.INTERNAL_SERVER_ERROR, message=str(ex), exception=ex)
-
-    logger.debug(f"-delete() <= response={response}")
-    return make_response(response.to_json(), response.status)
+contactRouter = ContactRouter()
+bp_contact_v1.add_api_route("/", contactRouter.create, methods=["POST"])
+bp_contact_v1.add_api_route("/batch", contactRouter.bulkCreate, methods=["POST"])
+bp_contact_v1.add_api_route("/", contactRouter.get, methods=["GET"])
+bp_contact_v1.add_api_route("/", contactRouter.update, methods=["PUT"])
+bp_contact_v1.add_api_route("/{id}", contactRouter.delete, methods=["DELETE"])

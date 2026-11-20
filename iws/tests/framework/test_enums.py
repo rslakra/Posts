@@ -1,6 +1,7 @@
 import unittest
 
-from framework.enums import BaseEnum, AutoUpperCase, AutoLowerCase, EnvType
+from framework.enums.base import BaseEnum, AutoUpperCase, AutoLowerCase
+from framework.enums.env_type import EnvType
 
 
 class EnumsTest(unittest.TestCase):
@@ -65,10 +66,10 @@ class EnumsTest(unittest.TestCase):
             self.assertIsNotNone(env_type)
 
         # test env
-        flask_env = EnvType.flask_env()
-        print(f"flask_env={flask_env}")
-        if flask_env is not None:
-            self.assertIsNotNone(flask_env)
+        app_env = EnvType.app_env()
+        print(f"app_env={app_env}")
+        if app_env is not None:
+            self.assertIsNotNone(app_env)
 
         text = 'live'
         print(f"{text} of_value={EnvType.of_value(text)}")

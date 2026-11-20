@@ -16,11 +16,11 @@
     <form method="post">
         <div class="form-group">
             <label for="author">Your Name</label>
-            <input type="text" name="author" id="author" value="{{ request.form['author'] }}" class="form-control">
+            <input type="text" name="author" id="author" class="form-control">
         </div>
         <div class="form-group">
             <label for="message">Your Message</label>
-            <textarea name="message" id="message" class="form-control">{{ request.form['message'] }}</textarea>
+            <textarea name="message" id="message" class="form-control"></textarea>
         </div>
         <div class="form-group">
             <input type="submit" value="Post Message" class="submit-btn">
@@ -33,6 +33,3 @@
 <br>
 
 {% endblock content %}
-
-
-

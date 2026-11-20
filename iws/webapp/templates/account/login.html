@@ -14,18 +14,17 @@
 
     <div class="form-container">
         <fieldset class="fieldset">
-            <form action="{{ url_for('iws.api.v1.accounts.login_view') }}" method="post">
+            <form action="/accounts/login" method="post">
                 <div class="img-container">
                     <!-- <span onclick="document.getElementById('frmLogin').style.display='none'" class="close"
                     title="Close Modal">&times;</span> -->
-                    <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar"
-                        class="avatar">
+                    <img src="{{ url_for('static', path='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
                 </div>
 
                 <!-- <div class="container"> -->
-                <label class="label-bold" for="username">Username <span class="label-required-star"
+                <label class="label-bold" for="user_name">Email <span class="label-required-star"
                         aria-hidden="true">*</span></label>
-                <input type="email" placeholder="Enter Username" name="username" required />
+                <input type="email" placeholder="Enter Email" name="user_name" required />
 
                 <label class="label-bold" for="password">Password <span class="label-required-star"
                         aria-hidden="true">*</span></label>
@@ -43,9 +42,9 @@
                 <div class="container button-panel">
                     <!-- <button type="button" onclick="document.getElementById('frmLogin').style.display='none'"
                     class="cancel-button">Cancel</button> -->
-                    <span class="password"><a href="{{ url_for('iws.api.v1.accounts.forgot_password') }}">Forgot
+                    <span class="password"><a href="/accounts/forgot-password">Forgot
                             Password?</a></span>
-                    <span><a href="{{ url_for('iws.api.v1.accounts.register_view') }}">Register</a></span>
+                    <span><a href="/accounts/register">Register</a></span>
                 </div>
             </form>
         </fieldset>

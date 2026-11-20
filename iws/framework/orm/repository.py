@@ -9,7 +9,7 @@ from typing import Iterable, Any, Dict, List, Optional
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
-from framework.enums import AutoUpperCase
+from framework.enums.base import AutoUpperCase
 
 logger = logging.getLogger(__name__)
 

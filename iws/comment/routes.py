@@ -1,24 +1,24 @@
 #
 # Author: Rohtash Lakra
-# Reference - https://realpython.com/flask-blueprint/
 #
-from flask import render_template, make_response, request, redirect, url_for
-from comment.v1 import bp as bp_v1_comments
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+
+from comment.v1 import comment_router
+
+templates = Jinja2Templates(directory="webapp/templates")
 
 
-@bp_v1_comments.route("/")
-def index():
-    """Load Index Page"""
-    return render_template("comment/index.html")
+@comment_router.get("/", include_in_schema=False)
+async def index(request: Request):
+    return templates.TemplateResponse("comment/index.html", {"request": request})
 
 
-@bp_v1_comments.get("/comment/<int:comment_id>")
-def login():
-    """Load View Page"""
-    return render_template("comment/view.html")
+@comment_router.get("/comment/{comment_id}", include_in_schema=False)
+async def view(request: Request, comment_id: int):
+    return templates.TemplateResponse("comment/view.html", {"request": request, "comment_id": comment_id})
 
 
-@bp_v1_comments.get("/checkout")
-def checkout():
-    """Load Checkout Page"""
-    return render_template("comment/checkout.html")
+@comment_router.get("/checkout", include_in_schema=False)
+async def checkout(request: Request):
+    return templates.TemplateResponse("comment/checkout.html", {"request": request})

@@ -4,7 +4,9 @@
 import json
 import unittest
 
-from framework.datetime import nowMillis
+from fastapi.testclient import TestClient
+
+from framework.time import timeMillis
 from tests import app
 
 
@@ -37,13 +39,9 @@ class AbstractTestCase(unittest.TestCase):
     def setUpClass(cls):
         # set app at class level
         cls.app = app
-        # update app's config enableTesting=True
-        cls.app.config.update({
-            "enableTesting": True
-        })
 
-        # init client from app's client
-        cls.client = app.test_client()
+        # init client from app (not used as a context manager, so the app's lifespan hooks don't run)
+        cls.client = TestClient(app)
 
         # load json files
         with open('tests/data/app-configs.json', 'r') as app_config_file:
@@ -88,4 +86,4 @@ class AbstractTestCase(unittest.TestCase):
     #     print("-test_webapp()")
 
     def getTestEmail(self, isAdmin: bool = False):
-        return f"{'admin' if isAdmin else 'user'}{nowMillis()}@lakra.com"
+        return f"{'admin' if isAdmin else 'user'}{timeMillis()}@lakra.com"

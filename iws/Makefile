@@ -33,6 +33,8 @@ NETWORK_NAME=mysql-network
 MYSQL_CONTAINER_NAME=mysql-docker
 MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=posts
+MYSQL_IMAGE=mysql:8.4
+MYSQL_HOST_PORT=3306
 # --------------------------------------------------------------
 # Database Settings
 # --------------------------------------------------------------
@@ -77,7 +79,7 @@ GIT_SHORT_COMMIT=${GIT_COMMIT:0:8}
 #
 # .PHONY defines parts of the makefile that are not dependant on any specific file
 # This is most often used to store functions
-.PHONY: help
+.PHONY: help clean clean-images start stop status db-up db-down
 # .PHONY: help Makefile
 
 # Defines the default target that `make` will to try to make, or in the case of a phony target, execute the specified
@@ -130,9 +132,9 @@ help:
 #
 
 # In this context, the *.project pattern means "anything that has the .project extension"
-clean: ## Remove build and cache files
-clean:
-	@# Help: Remove build and cache files
+clean: ## Remove build and cache files and the docker images (created and stale) of this project
+clean: clean-images
+	@# Help: Remove build and cache files and the docker images (created and stale) of this project
 	@echo "Cleaning up ..."
 	#$(VENV)/bin/deactivate
 	#deactivate
@@ -141,44 +143,190 @@ clean:
 	find . -name '*.py[co]' -delete
 	find . -type f -name '*.py[co]' -delete
 
-
-setup: ## Sets up environment and installs requirements
-setup:
-	@# Help: Sets up environment and installs requirements
-	@echo "Setting up the Python environment ..."
-	python3 -m pip install virtualenv
-	python3 -m $(VENV) $(VENV)
-	#source $(VENV)/bin/activate
-	. $(ACTIVATE)
-	@echo
-	$(pwd)
-	@echo
-# 	#$(PIP) install --upgrade pip
-# 	$(PIP) install --upgrade pip
-# 	#$(PYTHON) -m pip install --upgrade pip
-# 	$(PYTHON) -m pip install -r requirements.txt
-
-#
-# Virtual Env Commands
-#
-
-install-packages:
-	@# Help: Upgrade PIP & Installs packages/dependencies
-	@echo "Upgrade PIP & Installs packages/dependencies ..."
-# 	source $(VENV)/bin/activate
-	$(PIP) install --upgrade pip
-	$(PIP) install -r requirements.txt
+# Removes the docker images of this project:
+# - the app container (it uses the image) and all the images of '$(DOCKER_CONTAINER_NAME)' (every tag), and
+# - the stale (dangling, '<none>') images that were left over by rebuilding it. They are found via the 'project' label
+#   of the Dockerfile, so the images of other projects are never touched.
+# The MySQL container/volume (data) and the pulled 'mysql' image are NOT removed. Skipped when Docker isn't running.
+clean-images: ## Remove the docker images (created and stale) of this project
+	@# Help: Remove the docker images (created and stale) of this project
+	@if ! docker info >/dev/null 2>&1; then \
+		echo "Docker is not running, skipping the removal of the docker images."; \
+		exit 0; \
+	fi; \
+	if docker container inspect $(DOCKER_CONTAINER_NAME) >/dev/null 2>&1; then \
+		echo "Removing container [$(DOCKER_CONTAINER_NAME)] that uses the image ..."; \
+		docker rm -f $(DOCKER_CONTAINER_NAME) >/dev/null; \
+	fi; \
+	IMAGES=$$(docker images -q $(DOCKER_CONTAINER_NAME) | sort -u); \
+	if [ -n "$$IMAGES" ]; then \
+		echo "Removing the images of [$(DOCKER_CONTAINER_NAME)] ..."; \
+		docker image rm -f $$IMAGES; \
+	else \
+		echo "No images of [$(DOCKER_CONTAINER_NAME)] found."; \
+	fi; \
+	echo "Removing the stale (dangling) images of [$(PROJECT_NAME)] ..."; \
+	docker image prune -f --filter "label=project=$(PROJECT_NAME)"
 
 
 #
-# Run Commands
+# Setup Environment Commands
 #
 
-run: ## Runs the python application
-run: venv
-	@# Help: Runs the python application
-	@echo "Running Python Application ..."
-	@$(PYTHON) -m flask --app wsgi run --port 8080 --debug
+venv: ## Creates virtual environment if missing
+venv:
+	@# Help: Creates virtual environment if missing
+	@if [ ! -x "$(PYTHON)" ]; then \
+		echo "Creating Python virtual environment ..."; \
+		python3 -m venv $(VENV); \
+	fi
+	@$(PYTHON) -m ensurepip --upgrade >/dev/null 2>&1 || true
+
+install-packages: ## Upgrades pip and installs requirements
+install-packages: venv
+	@# Help: Upgrades pip and installs requirements
+	@echo "Installing project packages ..."
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -r requirements.txt
+
+
+setup: ## Alias of install-packages target
+setup: install-packages
+	@# Help: Alias of install-packages target
+
+
+#
+# Start Application Commands
+#
+
+start-fastapi: ## Runs FastAPI Application
+start-fastapi: venv stop-fastapi
+	@# Help: Runs FastAPI Application
+	@echo "Running FastAPI Application ..."
+	@$(PYTHON) -m uvicorn main:app --host 0.0.0.0 --port 8082 --reload
+
+stop-fastapi: ## Stops processes listening on 8082
+	@# Help: Stops stale FastAPI/uvicorn listeners
+	@PIDS=$$(lsof -ti tcp:8082 2>/dev/null || true); \
+	if [ -n "$$PIDS" ]; then \
+		echo "Stopping existing process(es) on 8082: $$PIDS"; \
+		kill $$PIDS; \
+		sleep 1; \
+	else \
+		echo "No existing process found on 8082"; \
+	fi
+
+#
+# Container Based Application Commands
+#
+# Usage:
+#   make start             # builds the image and runs the app container (SQLite, the settings of '.env')
+#   make start DB=mysql    # also starts the MySQL container ('db-up') and runs the app against it
+#   make stop              # stops and removes the app container
+#   make status            # shows the status of the DB and app containers
+#   make db-up             # starts the MySQL container (waits until it accepts connections)
+#   make db-down           # stops and removes the MySQL container (the data volume is kept)
+#
+
+# Database used by the app container: 'sqlite' (default, uses '.env') or 'mysql' (uses the MySQL container).
+DB?=sqlite
+START_DEPS:=
+APP_DB_ARGS:=
+ifeq ($(DB),mysql)
+START_DEPS:=db-up
+APP_DB_ARGS:=-e DB_TYPE=MYSQL -e DB_HOSTNAME=$(MYSQL_CONTAINER_NAME) -e DB_PORT=3306 -e DB_NAME=$(MYSQL_DATABASE) -e DB_USERNAME=root -e DB_PASSWORD=$(MYSQL_ROOT_PASSWORD)
+endif
+
+start: ## Builds and starts the FastAPI app as a docker container
+start: $(START_DEPS) docker-build-container
+	@# Help: Builds and starts the FastAPI app as a docker container (DB=mysql uses the MySQL container)
+	@echo "Starting FastAPI container [$(DOCKER_CONTAINER_NAME)] with DB=$(DB) ..."
+	@docker network inspect $(NETWORK_NAME) >/dev/null 2>&1 || docker network create $(NETWORK_NAME) >/dev/null
+	@docker rm -f $(DOCKER_CONTAINER_NAME) >/dev/null 2>&1 || true
+	docker run --name $(DOCKER_CONTAINER_NAME) --network $(NETWORK_NAME) -p $(HOST_PORT):$(CONTAINER_PORT) -d $(APP_DB_ARGS) $(DOCKER_CONTAINER_NAME):$(DOCKER_IMAGE_TAG)
+	@echo "FastAPI is starting on http://localhost:$(HOST_PORT) (docs: http://localhost:$(HOST_PORT)/docs)"
+	@echo "Logs: make docker-log-container"
+
+stop: ## Stops the running FastAPI docker container
+	@# Help: Stops and removes the running FastAPI docker container
+	@if docker container inspect $(DOCKER_CONTAINER_NAME) >/dev/null 2>&1; then \
+		echo "Stopping FastAPI container [$(DOCKER_CONTAINER_NAME)] ..."; \
+		docker stop $(DOCKER_CONTAINER_NAME) >/dev/null; \
+		docker rm -f $(DOCKER_CONTAINER_NAME) >/dev/null; \
+		echo "Stopped."; \
+	else \
+		echo "No container named [$(DOCKER_CONTAINER_NAME)] found."; \
+	fi
+
+db-up: ## Starts the MySQL docker container
+	@# Help: Starts the MySQL docker container and waits until it accepts connections
+	@docker network inspect $(NETWORK_NAME) >/dev/null 2>&1 || docker network create $(NETWORK_NAME) >/dev/null
+	@if docker container inspect $(MYSQL_CONTAINER_NAME) >/dev/null 2>&1; then \
+		echo "Starting existing MySQL container [$(MYSQL_CONTAINER_NAME)] ..."; \
+		docker start $(MYSQL_CONTAINER_NAME) >/dev/null; \
+	else \
+		echo "Creating MySQL container [$(MYSQL_CONTAINER_NAME)] ..."; \
+		docker run --name $(MYSQL_CONTAINER_NAME) --network $(NETWORK_NAME) \
+			-p $(MYSQL_HOST_PORT):3306 \
+			-v $(MYSQL_CONTAINER_NAME)-data:/var/lib/mysql \
+			-e MYSQL_ROOT_PASSWORD=$(MYSQL_ROOT_PASSWORD) -e MYSQL_DATABASE=$(MYSQL_DATABASE) \
+			-d $(MYSQL_IMAGE) >/dev/null; \
+	fi
+	@echo "Waiting for MySQL to accept connections ..."
+	@# '-h 127.0.0.1' forces TCP, so the temporary server of the image's initialization is not mistaken as ready.
+	@for i in $$(seq 1 60); do \
+		if docker exec $(MYSQL_CONTAINER_NAME) mysqladmin ping -h 127.0.0.1 -uroot -p$(MYSQL_ROOT_PASSWORD) --silent >/dev/null 2>&1; then \
+			echo "MySQL is ready on localhost:$(MYSQL_HOST_PORT) (database: $(MYSQL_DATABASE))"; \
+			exit 0; \
+		fi; \
+		sleep 2; \
+	done; \
+	echo "MySQL did not become ready in time. Check: docker logs $(MYSQL_CONTAINER_NAME)"; \
+	exit 1
+
+db-down: ## Stops the MySQL docker container
+	@# Help: Stops and removes the MySQL docker container (the data volume is kept)
+	@if docker container inspect $(MYSQL_CONTAINER_NAME) >/dev/null 2>&1; then \
+		echo "Stopping MySQL container [$(MYSQL_CONTAINER_NAME)] ..."; \
+		docker stop $(MYSQL_CONTAINER_NAME) >/dev/null; \
+		docker rm -f $(MYSQL_CONTAINER_NAME) >/dev/null; \
+		echo "Stopped. Data volume [$(MYSQL_CONTAINER_NAME)-data] is kept, remove it with: docker volume rm $(MYSQL_CONTAINER_NAME)-data"; \
+	else \
+		echo "No container named [$(MYSQL_CONTAINER_NAME)] found."; \
+	fi
+
+status: ## Shows the status of the DB and FastAPI app containers
+	@# Help: Shows the status of the running DB and FastAPI app containers
+	@if ! docker info >/dev/null 2>&1; then \
+		echo "Docker is not running (or not reachable)."; \
+		exit 1; \
+	fi
+	@printf "%-6s %-18s %-12s %s\n" "ROLE" "CONTAINER" "STATUS" "PORTS"
+	@printf "%-6s %-18s %-12s %s\n" "----" "---------" "------" "-----"
+	@for entry in "db:$(MYSQL_CONTAINER_NAME)" "app:$(DOCKER_CONTAINER_NAME)"; do \
+		role=$${entry%%:*}; name=$${entry#*:}; \
+		if docker container inspect $$name >/dev/null 2>&1; then \
+			state=$$(docker inspect -f '{{.State.Status}}' $$name); \
+			ports=$$(docker port $$name 2>/dev/null | tr '\n' ' '); \
+			printf "%-6s %-18s %-12s %s\n" "$$role" "$$name" "$$state" "$${ports:--}"; \
+		else \
+			printf "%-6s %-18s %-12s %s\n" "$$role" "$$name" "not created" "-"; \
+		fi; \
+	done
+	@if [ "$$(docker inspect -f '{{.State.Running}}' $(DOCKER_CONTAINER_NAME) 2>/dev/null)" = "true" ]; then \
+		if curl -fsS -m 3 http://localhost:$(HOST_PORT)/health-check >/dev/null 2>&1; then \
+			echo "App health: OK (http://localhost:$(HOST_PORT)/health-check)"; \
+		else \
+			echo "App health: NOT RESPONDING (http://localhost:$(HOST_PORT)/health-check), check: make docker-log-container"; \
+		fi; \
+	fi
+	@if [ "$$(docker inspect -f '{{.State.Running}}' $(MYSQL_CONTAINER_NAME) 2>/dev/null)" = "true" ]; then \
+		if docker exec $(MYSQL_CONTAINER_NAME) mysqladmin ping -h 127.0.0.1 -uroot -p$(MYSQL_ROOT_PASSWORD) --silent >/dev/null 2>&1; then \
+			echo "DB health:  OK (MySQL accepts connections)"; \
+		else \
+			echo "DB health:  NOT READY, check: make mysql-log-container"; \
+		fi; \
+	fi
 
 #
 # Test Commands
@@ -190,8 +338,14 @@ test: ## Tests the python application
 test:
 	@# Help: Tests the python application
 	@echo "Testing Python Application ..."
-	@$(PYTHON) -m unittest
-	@$(PYTHON) -m pytest
+	@# ENV_TYPE=test selects '.env.test', so the tests never touch the development database.
+	@ENV_TYPE=test $(PYTHON) -m unittest
+	@# pytest is optional (not part of requirements.txt), the unittest run above already executes all the tests.
+	@if $(PYTHON) -c "import pytest" >/dev/null 2>&1; then \
+		ENV_TYPE=test $(PYTHON) -m pytest; \
+	else \
+		echo "pytest is not installed, skipping the pytest run."; \
+	fi
 	-#find coverage/ -mindepth 1 -delete
 #	pytest $${TESTS}
 #	@$(PYTHON) setup.py sdist

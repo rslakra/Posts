@@ -15,9 +15,9 @@
 
 <div>
     <fieldset class="fieldset">
-        <form action="{{ url_for('iws.api.v1.accounts.login') }}" method="post">
+        <form action="/accounts/login" method="post">
             <div class="img-container">
-                <img src="{{ url_for('static', filename='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
+                <img src="{{ url_for('static', path='images/profile-avatar.png') }}" alt="Avatar" class="avatar">
             </div>
 
             <div class="container">
@@ -36,9 +36,9 @@
             <div class="container button-panel">
                 <!-- <button type="button" onclick="document.getElementById('frmLogin').style.display='none'"
                     class="cancel-button">Cancel</button> -->
-                <span class="password"><a href="{{ url_for('iws.api.v1.accounts.forgot_password') }}">Forgot
+                <span class="password"><a href="/accounts/forgot-password">Forgot
                         Password?</a></span>
-                <span><a href="{{ url_for('iws.api.v1.accounts.register') }}">Register</a></span>
+                <span><a href="/accounts/register">Register</a></span>
             </div>
         </form>
         <!--    </fieldset>-->
