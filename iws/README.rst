@@ -15,9 +15,9 @@ across different projects.
     ├── ews                             # An external web-service
     ├── iws                             # An internal web-service
     │    ├── account                    # an account’s rest service.
-    │    │    ├── v1                    # contains v1 blueprints/api resources.
+    │    │    ├── v1                    # contains v1 routers/api resources.
     │    │    │    ├── routes           # contains the routes of api resource.
-    │    │    ├── v2                    # contains v2 blueprints/api resources.
+    │    │    ├── v2                    # contains v2 routers/api resources.
     │    │    │    ├── routes           # contains the routes of api resource.
     │    │    ├── __init__.py           # The package initializer
     │    │    ├── models.py             # The model objects
@@ -59,7 +59,7 @@ across different projects.
     │    │    │    ├── post             # contains the reusable fragments of web views.
     │    │    │    └── __init__.py      # The package initializer
     │    │    ├── __init__.py           # The package initializer
-    │    │    ├── app.py                # The WSGI web application logic.
+    │    │    ├── routes.py             # The UI routes of the FastAPI application.
     │    │    ├── app.py                # contains the web application logic.
     │    │    ├── routes.py             # contains the definition of the web’s routes.
     │    ├── __init__.py                # The package initializer
@@ -103,16 +103,7 @@ The parenthesized (venv) in front of the prompt indicates that you’ve successf
 
 ```
 pip install --upgrade pip
-python3 -m pip install -r iws/requirements.txt
-```
-
-
-- Install Flask
-
-**Note**: - Only if you didn't install the 'requirements.txt' file.
-
-```shell
-python3 -m pip install Flask
+python3 -m pip install -r requirements.txt
 ```
 
 
@@ -121,17 +112,19 @@ python3 -m pip install Flask
 Create or update local .env configuration file.
 
 ```shell
-cp ./iws/default.env .env
+cp .env.sample .env
 OR
 touch .env
 
 # Local Variables
+ENV_TYPE = develop
 HOST = 127.0.0.1
 PORT = 8080
 DEBUG = True
 DEFAULT_POOL_SIZE = 1
 RDS_POOL_SIZE = 1
-# Database Configs
+# Database Configs (DB_TYPE = SQLAlchemy for SQLite or MYSQL)
+DB_TYPE = SQLAlchemy
 DB_HOSTNAME = 127.0.0.1
 DB_PORT =
 DB_NAME = posts
@@ -140,46 +133,23 @@ DB_PASSWORD =
 ```
 
 
-### Run IWS Flask Application
-
-**By default**, Flask runs the application on **port 5000**.
-
+### Run IWS FastAPI Application
 
 ```shell
-python wsgi.py
-
-OR
-
-#flask --app wsgi run
-python -m flask --app wsgi run
-# http://127.0.0.1:5000/posts
-
-OR
-
-python -m flask --app wsgi run --port 8080 --debug
-# http://127.0.0.1:8080/posts
+uvicorn main:app --host 0.0.0.0 --port 8082 --reload
+# http://127.0.0.1:8082/health-check
 
 OR
 
 # Production Mode
-
-# equivalent to 'from app import app'
-gunicorn wsgi:app
-# gunicorn -w <n> 'wsgi:app'
-gunicorn -w 2 'wsgi:app'
-# http://127.0.0.1:8000/posts
-
-gunicorn -c gunicorn.conf.py wsgi:app
-# http://127.0.0.1:8080/posts
-
+uvicorn main:app --host 0.0.0.0 --port 8080 --workers 2
 ```
 
 **Note**:- You can stop the development server by pressing ```Ctrl+C``` in your terminal.
 
-### Access Flask Application
-- [IWS on port 8080](http://127.0.0.1:8080/posts)
-- [IWS on port 8000](http://127.0.0.1:8000/posts)
-- [IWS on port 5000](http://127.0.0.1:5000/posts)
+### Access FastAPI Application
+- [IWS Health Check](http://127.0.0.1:8082/health-check)
+- [IWS OpenAPI Docs](http://127.0.0.1:8082/docs)
 
 
 ### Build Project
@@ -212,11 +182,10 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 
 # Reference
 
-- [Build a Scalable Flask Web Project From Scratch](https://realpython.com/flask-project/)
-- [Gunicorn - WSGI server](https://docs.gunicorn.org/en/latest/index.html)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Uvicorn - ASGI server](https://www.uvicorn.org/)
 - [Python Packaging User Guide](https://packaging.python.org/en/latest/)
 - [The Twelve Factors App](https://12factor.net/)
-- [werkzeug examples](https://github.com/pallets/werkzeug/tree/main/examples)
 
 ### Logger Guide
 - [Logging HOWTO](https://docs.python.org/3/howto/logging.html)

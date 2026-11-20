@@ -121,6 +121,5 @@ class KeyEnum(AutoUpperCase):
     DB_TYPE = auto()
     ENV_TYPE = auto()
     LOG_FILE_NAME = auto()
-    FLASK_ENV = auto()
 
 

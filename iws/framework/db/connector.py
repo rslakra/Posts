@@ -1,25 +1,19 @@
 #
 # Author: Rohtash Lakra
 #
-import contextlib
 import logging
 import sqlite3
+from contextvars import ContextVar
 from pathlib import Path
-from typing import AsyncIterator
+from typing import Iterator
 from typing import Union, Iterable, Any
 
-import click
 import sqlalchemy
-from contextvars import ContextVar
-from flask import g, current_app
 from sqlalchemy import Engine, URL, create_engine
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-)
 from sqlalchemy.orm import Session, sessionmaker
 
-from framework.enums.db_type import DbType
 from framework.enums.base import KeyEnum
+from framework.enums.db_type import DbType
 from framework.orm.sqlalchemy.schema import BaseSchema
 
 logger = logging.getLogger(__name__)
@@ -55,13 +49,8 @@ def createSessionMaker(engine: Engine):
 def createDatabase(engine: Engine) -> None:
     """ Creates the database. """
     logger.debug(f"+createDatabase({engine})")
-    # self.session = Session()
-    # Using our table metadata and our engine, we can generate our schema at once in our target SQLite
+    # Using our table metadata and our engine, we can generate our schema at once in our target
     # database, using a method called 'MetaData.create_all()':
-    # self.metadata = MetaData()
-    # MetaData.create_all(BaseSchema, bind=self.engine)
-    # self.metadata.create_all(self.engine)
-    # AbstractEntity.metadata.create_all(bind=self.engine)
     try:
         BaseSchema.metadata.create_all(bind=engine)
     except Exception as ex:
@@ -69,24 +58,6 @@ def createDatabase(engine: Engine) -> None:
 
     logger.debug(f"-createDatabase(), engine={engine}")
 
-
-# 'click.command()' defines a command line command called init-db that calls the 'init_db' function and shows a success
-# message to the user. You can read Command Line Interface to learn more about writing commands.
-@click.command('init-db')
-def init_db_command():
-    """Clear the existing data and create new tables."""
-    click.echo('Initializing the database ...')
-    db = SQLite3Connector()
-    db.init(None)
-    # db.init_db()
-    click.echo('Database is successfully initialized.')
-
-
-# def init_app(app):
-#     # app.teardown_appcontext() tells Flask to call that function when cleaning up after returning the response.
-#     app.teardown_appcontext(SQLite3Database().close_connection())
-#     # app.cli.add_command() adds a new command that can be called with the flask command.
-#     app.cli.add_command(init_db_command)
 
 # Define Constants
 KEY_CONNECTION = 'connection'
@@ -108,186 +79,11 @@ class DatabaseConnector(object):
         logger.debug("Initializing database ...")
 
 
-class SQLite3Connector(DatabaseConnector):
-    """SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured,
-    SQL database engine. SQLite is the most used database engine in the world.
-    """
-
-    def __init__(self):
-        """Initialize"""
-        # current_app.logger.debug("Initializing SQLite3 Connector ...")
-        self.app = None
-        self.pool = None
-        self.db_name: str = None
-        self.db_user_name = None
-        self.db_password = None
-        self.db_uri = None
-        self.engine: Engine = None
-        # self.metadata = None
-        # self.session = None
-
-        # paths
-        self.cur_dir = Path(__file__).parent
-        # current_app.logger.debug(f"cur_dir:{self.cur_dir}")
-        self.data_path = self.cur_dir.joinpath("data")
-        # current_app.logger.debug(f"data_path:{self.data_path}")
-
-    def get_connection(self):
-        """Get Connection"""
-        current_app.logger.debug(f"get_connection(), db_name: {self.db_name}, db_password: {self.db_password}")
-        return sqlite3.connect(self.db_name, detect_types=sqlite3.PARSE_DECLTYPES)
-
-    def init(self, app):
-        """Initialize App Context"""
-        self.app = app
-        with self.app.app_context():
-            current_app.logger.debug(f"Initializing App Context for {app} ...")
-        self._init_configs()
-        # 'app.teardown_appcontext()' tells Flask to call that function when cleaning up after returning the response.
-        # self.app.teardown_appcontext(self.close_connection())
-
-        # self.create_pool()
-        # app.cli.add_command() adds a new command that can be called with the flask command.
-        # self.app.cli.add_command(self.init_db)
-
-    def _init_configs(self, configs: dict[str, Any] = None):
-        """Initializes Configs"""
-        with self.app.app_context():
-            current_app.logger.debug(f"Initializing Configs ...")
-            # current_app.logger.debug(f"current_app: {current_app}, current_app.config: {current_app.config}")
-            # read db-name from app's config
-            if not self.db_name:
-                self.db_name = self.app.config.get("DB_NAME")
-
-            current_app.logger.debug(f"self.db_name={self.db_name}")
-            if self.db_name and not self.db_name.endswith(".db"):
-                self.db_name = '.'.join([self.db_name, "db"])
-                configs["DB_NAME"] = self.db_name
-
-            # build db uri
-            self.db_uri = DbType.dbUri(configs)
-            self.db_password = self.app.config.get("DB_PASSWORD")
-            current_app.logger.debug(f"db_name={self.db_name}, db_password={self.db_password}, db_uri={self.db_uri}")
-
-    def init_db(self, configs: dict = None):
-        """Initializes the database"""
-        with self.app.app_context():
-            current_app.logger.debug(f"Initializing Database. configs={configs}")
-            dbType = configs.get(KeyEnum.DB_TYPE.name)
-            current_app.logger.debug(f"dbType={dbType}")
-            if dbType and DbType.equals(DbType.SQLALCHEMY, dbType):
-                """Initializes the SQLAlchemy database"""
-                # Set up the SQLAlchemy Database to be a local file 'posts.db'
-                # SQLALCHEMY_DATABASE_URL
-                self.app.config['SQLALCHEMY_DATABASE_URI'] = self.db_uri
-                # SQLAlchemy DB Creation
-                self.engine = createEngine(self.db_uri, debug=True)
-                self.sessionLocal = createSessionMaker(self.engine)
-
-                createDatabase(self.engine)
-
-            else:
-                """Initializes the SQLite Database"""
-                #  current_app.logger.debug(f"current_app: {current_app}, current_app.config: {current_app.config}")
-                # read db-name from app's config
-                try:
-                    connection = self.open_connection()
-                    # read the db-schema file and prepare db
-                    with open(self.data_path.joinpath('schema.sql'), encoding='UTF_8') as schema_file:
-                        connection.executescript(schema_file.read())
-
-                except Exception as ex:
-                    current_app.logger.debug(f'Error initializing database! Error:{ex}')
-                finally:
-                    # close the connection
-                    self.close_connection()
-
-    def open_connection(self):
-        """Opens the database connection"""
-        with self.app.app_context():
-            current_app.logger.debug("Opening database connection ...")
-            if not hasattr(g, 'connection'):
-                current_app.logger.debug(f"db_name:{self.db_name}, db_password:{self.db_password}")
-                g.connection = self.get_connection()
-                current_app.logger.debug(f"g.connection: {g.connection}")
-                g.connection.row_factory = sqlite3.Row
-                # g.connection.cursor(dictionary=True)
-                # g.connection.autocommit = False
-
-            return g.connection
-
-        return None
-
-    def close_connection(self, connection=None, error=None):
-        """Closes the database connection"""
-        with self.app.app_context():
-            if hasattr(g, 'connection'):
-                try:
-                    try:
-                        if error:
-                            g.connection.rollback()
-                            current_app.logger.debug('Rollback occurred due to an error!')
-
-                        # closing the cursor
-                        # g.cursor.close()
-                    except Exception as ex:
-                        current_app.logger.debug(f'Error while rollback/closing the cursor! Error:{ex}')
-                    finally:
-                        g.connection.close()
-                except Exception as ex:
-                    current_app.logger.debug(f'Error while closing the connection! Error:{ex}')
-            else:
-                current_app.logger.debug('No active connection!')
-
-    def save(self, instance):
-        """Saves the instance using context manager"""
-        current_app.logger.debug(f"+save(), instance={instance}")
-        with Session(self.engine) as session:
-            try:
-                session.begin()
-                session.add(instance)
-            except Exception as ex:
-                current_app.logger.error(f"Failed transaction with error:{ex}")
-                session.rollback()
-                raise ex
-            else:
-                session.commit()
-                current_app.logger.debug("Persisted a instance successfully!")
-        current_app.logger.debug(f"-save()")
-
-    def save_all(self, instances: Iterable[object]):
-        """Saves the instances using context manager"""
-        current_app.logger.debug(f"+save_all(), instances={instances}")
-        with Session(self.engine) as session:
-            try:
-                session.begin()
-                session.add_all(instances)
-            except Exception as ex:
-                current_app.logger.error(f"Failed transaction with error:{ex}")
-                session.rollback()
-                raise ex
-            else:
-                session.commit()
-                current_app.logger.debug(f"Persisted [{len(instances)}] instances successfully!")
-        current_app.logger.debug(f"-save_all()")
-
-    def select(self, entity: BaseSchema):
-        current_app.logger.info(f"select => entity={entity}")
-        with Session(self.engine) as session:
-            return session.query(entity).first()
-
-    def getDatabase(self):
-        """Returns the database."""
-        db_session = self.sessionLocal
-        try:
-            yield db_session
-        finally:
-            db_session.close()
-
-
 class AsyncSQLite3Connector(DatabaseConnector):
-    """SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured,
-    SQL database engine. SQLite is the most used database engine in the world.
+    """Database connector used by the FastAPI application.
+
+    It builds a SQLAlchemy engine (SQLite by default, MySQL when DB_TYPE=MYSQL) from the application's settings
+    and provides sessions to the repositories and the route dependencies.
     """
 
     def __init__(self):
@@ -308,49 +104,49 @@ class AsyncSQLite3Connector(DatabaseConnector):
 
         # paths
         self.cur_dir = Path(__file__).parent
-        # logger.debug(f"cur_dir:{self.cur_dir}")
         self.data_path = self.cur_dir.joinpath("data")
-        # logger.debug(f"data_path:{self.data_path}")
 
     @property
     def isConfigInitialized(self):
         return self._configInitialized
 
+    @staticmethod
+    def _isSQLite(configs: dict[str, Any]) -> bool:
+        dbType = configs.get(KeyEnum.DB_TYPE.name)
+        return bool(dbType) and DbType.equals(DbType.SQLALCHEMY, dbType)
+
     def _init_configs(self, configs: dict[str, Any] = None):
         """Initializes Connector's Configs"""
         logger.debug(f"Initializing Connector's Configs ...")
         if not self.isConfigInitialized:
-            # logger.debug(f"current_app: {current_app}, current_app.config: {current_app.config}")
-            # read db-name from app's config
+            # read db-name from the configs
             if not self.db_name:
                 self.db_name = configs.get("DB_NAME")
 
             logger.debug(f"self.db_name={self.db_name}")
-            if self.db_name and not self.db_name.endswith(".db"):
+            # only SQLite databases are files that carry the '.db' extension.
+            if self._isSQLite(configs) and self.db_name and not self.db_name.endswith(".db"):
                 self.db_name = '.'.join([self.db_name, "db"])
                 configs["DB_NAME"] = self.db_name
 
             # build db uri
             self.db_uri = DbType.dbUri(configs)
             self.db_password = configs.get("DB_PASSWORD")
-            logger.debug(f"db_name={self.db_name}, db_password={self.db_password}, db_uri={self.db_uri}")
+            # never log the uri, it may contain credentials.
+            logger.debug(f"db_name={self.db_name}")
             self._configInitialized = True
         else:
             logger.debug("Connector's Configs already Initialized.")
 
     def init_db(self, app: None, configs: dict[str, Any] = None) -> None:
         """Initializes the database"""
-        logger.debug(f"Initializing Database. configs={configs}")
+        logger.debug(f"Initializing Database.")
         self.app = app
         self._init_configs(configs)
 
         dbType = configs.get(KeyEnum.DB_TYPE.name)
         logger.debug(f"dbType={dbType}")
-        if dbType and DbType.equals(DbType.SQLALCHEMY, dbType):
-            """Initializes the SQLAlchemy database"""
-            # Set up the SQLAlchemy Database to be a local file 'posts.db'
-            # SQLALCHEMY_DATABASE_URL
-            # self.app.config['SQLALCHEMY_DATABASE_URI'] = self.db_uri
+        if dbType and (DbType.equals(DbType.SQLALCHEMY, dbType) or DbType.equals(DbType.MYSQL, dbType)):
             # SQLAlchemy DB Creation
             self.engine = createEngine(self.db_uri, debug=True)
             self.sessionMaker = createSessionMaker(self.engine)
@@ -358,7 +154,7 @@ class AsyncSQLite3Connector(DatabaseConnector):
 
     def getConnection(self):
         """Returns SQLite3 Connection"""
-        logger.debug(f"getConnection(), db_name: {self.db_name}, db_password: {self.db_password}")
+        logger.debug(f"getConnection(), db_name: {self.db_name}")
         return sqlite3.connect(self.db_name, detect_types=sqlite3.PARSE_DECLTYPES)
 
     def openConnection(self):
@@ -366,45 +162,39 @@ class AsyncSQLite3Connector(DatabaseConnector):
         logger.debug("Opening database connection ...")
         connection = self.context.get()
         if connection is None:
-            logger.debug(f"db_name:{self.db_name}, db_password:{self.db_password}")
             connection = self.getConnection()
             connection.row_factory = sqlite3.Row
             self.context.set(connection)
             logger.debug(f"connection: {connection}")
-            # g.connection.cursor(dictionary=True)
-            # g.connection.autocommit = False
 
         return connection
 
     def closeConnection(self, connection=None, error=None):
         """Closes the database connection"""
         logger.debug(f"Closing Database Connection. connection={connection}, error={error}")
-        connection = self.context.get('connection')
+        connection = connection or self.context.get()
         if connection:
             try:
                 try:
                     if error:
                         connection.rollback()
-                        print('Rollback occurred due to an error!')
-
-                    # closing the cursor
-                    # g.cursor.close()
+                        logger.warning('Rollback occurred due to an error!')
                 except Exception as ex:
-                    print(f'Error while rollback/closing the cursor! Error:{ex}')
+                    logger.warning(f'Error while rollback/closing the cursor! Error:{ex}')
                 finally:
                     connection.close()
+                    self.context.set(None)
             except Exception as ex:
-                print(f'Error while closing the connection! Error:{ex}')
+                logger.warning(f'Error while closing the connection! Error:{ex}')
         else:
-            print('No active connection!')
+            logger.debug('No active connection!')
 
-    @contextlib.asynccontextmanager
-    async def getSession(self) -> AsyncIterator[AsyncSession]:
+    def getSession(self) -> Iterator[Session]:
         """
-        Provides a managed asynchronous session.
+        Provides a managed session, usable as a FastAPI dependency (`Depends(connector.getSession)`).
 
         Yields:
-            AsyncSession: A new database session with auto commit/rollback.
+            Session: A new database session that commits on success and rolls back on error.
         """
         if self.sessionMaker is None:
             raise Exception("AsyncSQLite3Connector is not initialized!")
@@ -412,12 +202,12 @@ class AsyncSQLite3Connector(DatabaseConnector):
         session = self.sessionMaker()
         try:
             yield session
-            await session.commit()
+            session.commit()
         except Exception:
-            await session.rollback()
+            session.rollback()
             raise
         finally:
-            await session.close()
+            session.close()
 
     def save(self, instance):
         """Saves the instance using context manager"""

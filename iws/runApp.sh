@@ -1,11 +1,10 @@
 #!/bin/bash
 # Author: Rohtash Lakra
 echo
-#if [ $# -gt 0 ]; then
 if [ "$1" == "prod" ]; then
-  gunicorn -c gunicorn.conf.py wsgi:app
+  uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers ${WORKERS:-2}
 else
-  python -m flask --app wsgi run --port 8080 --debug
+  uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --reload
 fi
 echo
 

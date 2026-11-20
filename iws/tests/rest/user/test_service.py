@@ -151,7 +151,7 @@ class UserServiceTest(AbstractTestCase):
         logger.debug(f"user={self.user}")
         self.assertIsNotNone(self.user)
         self.assertIsNotNone(self.user.id)
-        self.assertEquals("Roh", self.user.first_name)
+        self.assertEqual("Roh", self.user.first_name)
 
         # login
         loginUser = LoginUser(email=self.user.email, password="password")

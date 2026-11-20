@@ -62,20 +62,20 @@ class EnvType(BaseEnum):
         if env_type is None:
             env_type = os.getenv(KeyEnum.ENV_TYPE.name.lower())
             if env_type is None:
-                env_type = EnvType.flask_env()
+                env_type = EnvType.app_env()
                 if env_type is None:
                     env_type = EnvType.DEV.name
 
         return env_type
 
     @staticmethod
-    def flask_env() -> str:
-        """Returns the value of FLASK_ENV env variable value if set otherwise None."""
-        flask_env = os.getenv(KeyEnum.FLASK_ENV.name)
-        if flask_env is None:
-            flask_env = os.getenv(KeyEnum.FLASK_ENV.name.lower())
+    def app_env() -> str:
+        """Returns the value of APP_ENV env variable value if set otherwise None."""
+        app_env = os.getenv(KeyEnum.APP_ENV.name)
+        if app_env is None:
+            app_env = os.getenv(KeyEnum.APP_ENV.name.lower())
 
-        return flask_env
+        return app_env
 
     @classmethod
     def getenv_bool(cls, key: str, default=False):

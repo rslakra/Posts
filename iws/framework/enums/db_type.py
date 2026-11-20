@@ -1,6 +1,7 @@
 import os
 from enum import unique
 from typing import Any
+from urllib.parse import quote_plus
 
 from framework.enums.base import BaseEnum, KeyEnum
 
@@ -9,7 +10,8 @@ from framework.enums.base import BaseEnum, KeyEnum
 class DbType(BaseEnum):
     """Database Type Enum. For readability, add constants in Alphabetical order."""
     SQLALCHEMY = "sqlite:///"
-    MYSQL = "mysql+asyncmy://"
+    # The connector uses synchronous SQLAlchemy engines/sessions, so a synchronous driver (PyMySQL) is required.
+    MYSQL = "mysql+pymysql://"
 
     @classmethod
     def dbUri(cls, configs: dict[str, Any] = None) -> str:
@@ -34,11 +36,12 @@ class DbType(BaseEnum):
 
             return ''.join([DbType.SQLALCHEMY.value, dbName])
         elif dbType and DbType.MYSQL == DbType.of_name(dbType):
-            # db_uri = f"mysql+asyncmy://{username}:{password}@{hostname}:{port}/{db_name}"
-            dbHost = configs.get("DB_HOST")
-            dbPort = configs.get("DB_PORT")
-            dbUserName = configs.get("DB_USERNAME")
-            dbPassword = configs.get("DB_PASSWORD")
+            # db_uri = f"mysql+pymysql://{username}:{password}@{hostname}:{port}/{db_name}"
+            # DB_HOSTNAME is the documented key (.env), DB_HOST is accepted as an alias.
+            dbHost = configs.get("DB_HOSTNAME") or configs.get("DB_HOST") or "127.0.0.1"
+            dbPort = configs.get("DB_PORT") or 3306
+            dbUserName = quote_plus(str(configs.get("DB_USERNAME") or ""))
+            dbPassword = quote_plus(str(configs.get("DB_PASSWORD") or ""))
             dbName = configs.get("DB_NAME")
             return f"{DbType.MYSQL.value}{dbUserName}:{dbPassword}@{dbHost}:{dbPort}/{dbName}"
         else:

@@ -4,8 +4,6 @@
 import logging
 from typing import List, Optional, Dict, Any
 
-from werkzeug.datastructures import MultiDict
-
 from framework.exception.duplicate import DuplicateRecordException
 from framework.exception.not_found import NoRecordFoundException
 from framework.exception.validation import ValidationException
@@ -177,10 +175,8 @@ class RoleService(AbstractService):
             # load roles
             schemaObject = self.roleRepository.findById(RoleSchema, rolePermission.role_id)
             # load roles permissions
-            filterPermissions = MultiDict()
-            for id in rolePermission.permissions:
-                filterPermissions.add("id", id)
-
+            # the repository expects a list value for "id" to build an IN clause.
+            filterPermissions = {"id": list(rolePermission.permissions)}
             permissions = self.permissionRepository.filter(filterPermissions)
             if schemaObject and permissions:
                 # assign permissions to role
@@ -190,9 +186,7 @@ class RoleService(AbstractService):
         logger.debug(f"schemaObjects=>{schemaObjects}")
         if schemaObjects:
             self.roleRepository.save_all(schemaObjects)
-            filterRoles = MultiDict()
-            for schemaObject in schemaObjects:
-                filterRoles.add("id", schemaObject.id)
+            filterRoles = {"id": [schemaObject.id for schemaObject in schemaObjects]}
             schemaObjects = self.roleRepository.filter(filterRoles)
             modelObjects = RoleMapper.fromSchemas(schemaObjects)
         else:

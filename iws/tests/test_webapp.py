@@ -1,40 +1,34 @@
 #
 # Author: Rohtash Lakra
 #
-from flask import current_app
-from unittest import TestCase
-from webapp import WebApp
+from fastapi import FastAPI
+
+from tests.base import AbstractTestCase
 
 
-class WebAppTest(TestCase):
-
-    def setUp(self):
-        """The setUp() method of the TestCase class is automatically invoked before each test, so it's an ideal place
-        to insert common logic that applies to all the tests in the class"""
-        print("+setUp()")
-        self.webApp = WebApp()
-        self.app = self.webApp.create_app(test_mode=True)
-        self.app.app_context = self.app.app_context()
-        self.app.app_context.push()
-        print("-setUp()")
-        print()
-
-    def tearDown(self):
-        """The tearDown() method of the TestCase class is automatically invoked after each test, so it's an ideal place
-        to insert common logic that applies to all the tests in the class"""
-        print("+tearDown()")
-        self.app.app_context.pop()
-        self.app.app_context = None
-        self.app = None
-        self.webApp = None
-        print("-tearDown()")
-        print()
+class WebAppTest(AbstractTestCase):
 
     def test_webapp(self):
-        """Tests the WebApp object"""
+        """Tests the FastAPI application object"""
         print("+test_webapp()")
-        assert self.app is not None
-        assert current_app == self.app
-        # valid object and expected results
+        self.assertIsNotNone(self.app)
+        self.assertIsInstance(self.app, FastAPI)
         print("-test_webapp()")
+        print()
+
+    def test_health_check(self):
+        """Tests the health-check end-point"""
+        print("+test_health_check()")
+        response = self.client.get("/health-check")
+        self.assertEqual(200, response.status_code)
+        print("-test_health_check()")
+        print()
+
+    def test_not_found(self):
+        """Tests the not-found error handler returns the JSON error model"""
+        print("+test_not_found()")
+        response = self.client.get("/no-such-end-point")
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(404, response.json().get("status"))
+        print("-test_not_found()")
         print()

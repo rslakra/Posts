@@ -6,7 +6,6 @@ import time
 import uuid
 
 from contextlib import asynccontextmanager
-from contextvars import ContextVar
 from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
@@ -19,16 +18,12 @@ from starlette.types import (
 from starlette.types import Scope
 from starlette.responses import Response
 
+from framework.logger import REQUEST_ID_KEY, get_request_id, request_id_context
 from globals import connector
 
-REQUEST_ID_KEY = "request_id"
-
-_context_request_id: ContextVar[str] = ContextVar(REQUEST_ID_KEY, default=None)
 logger = logging.getLogger(__name__)
 
-
-def get_request_id() -> str:
-    return _context_request_id.get()
+__all__ = ["REQUEST_ID_KEY", "get_request_id", "RequestIDMiddleware", "lifespan", "add_process_time_header"]
 
 
 class RequestIDMiddleware:
@@ -43,10 +38,11 @@ class RequestIDMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request_id = _context_request_id.set(uuid.uuid4().hex)
-        await self.app(scope, receive, send)
-
-        _context_request_id.reset(request_id)
+        token = request_id_context.set(uuid.uuid4().hex)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            request_id_context.reset(token)
 
 
 @asynccontextmanager

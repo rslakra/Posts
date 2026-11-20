@@ -5,60 +5,51 @@ import logging
 from enum import auto, unique
 from typing import Dict, Any
 
-from flask import g, request, current_app, Request
+from fastapi import Request
 
-from framework.utils import Utils
 from framework.enums.base import AutoUpperCase
 
 logger = logging.getLogger(__name__)
 
 
 def log_decorator(func):
+    """Logs the call (args/kwargs/response) of a service method. Framework-neutral (no request context needed)."""
+
     def wrapper(self, *args, **kwargs):
 
         def to_dictionary(data):
-            if data is not None and type(data) not in HTTPUtils.__data_types:
+            if data is not None and not isinstance(data, (str, dict, int, float, list)):
                 try:
                     # For variables of type api/objects/...
                     data = data.__dict__.copy()
                 except Exception as ex:
-                    print(f'Wrapper response conversion error! ex={ex}')
+                    logger.warning(f'Wrapper response conversion error! ex={ex}')
             return data
-
-        if not g.get('execute_request'):
-            g.execute_request = {
-                'x-request-id': Utils.randomUUID(),
-                'platform': g.user_agent.get('platform') if g.get('user_agent') else None
-            }
 
         response = func(self, *args, **kwargs)
 
-        # If want to disable logging decorator, add DISABLE_DECORATOR_LOGGING to application config feature_flags
         params = {}
         for idx, arg in enumerate(args):
             params[f'args[{idx}]'] = to_dictionary(arg)
 
         log_info = {
-            **g.request_flow,
-            'endpoint': request.full_path if request else None,
             'method': f'{self.__class__.__name__}.{func.__name__}()',
             'params': params,
             'kwargs': {**kwargs},
             'response': to_dictionary(response)
         }
-
-        current_app.logger.info(f'[TRACEBACK] log_info={log_info}')
+        logger.info(f'[TRACEBACK] log_info={log_info}')
 
         return response
 
     return wrapper
 
 
-def buildModel(request: Request) -> Dict[str, Any]:
+async def buildModel(request: Request) -> Dict[str, Any]:
+    """Builds a dictionary from the submitted form-data of the request, or None if the form is empty."""
     logger.debug(f"+buildModel({request})")
-    body = {",".join([":".join([key, value])]) for key, value in request.form[0]} if request.form else None
-    # for key, value in request.form:
-    #     body[key] = value
+    form = await request.form()
+    body = dict(form) if form else None
     logger.debug(f"-buildModel(), body={body}")
     return body
 

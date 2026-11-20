@@ -5,8 +5,6 @@
 import logging
 from typing import Mapping, Iterable, Dict, Any, List, Optional
 
-from werkzeug.datastructures import MultiDict
-
 from framework.orm.repository import AbstractRepository
 from globals import connector
 
@@ -26,7 +24,7 @@ class ClassicalRepository(AbstractRepository):
         """Executes the query"""
         logger.info(f"execute({statement}, {params}, {many}), connector => {connector}")
         # print(f"execute({params}, {many}), connector => {connector}")
-        connection = connector.get_connection()
+        connection = connector.getConnection()
         if many:
             return connection.executemany(statement, params)
         else:
@@ -38,29 +36,8 @@ class ClassicalRepository(AbstractRepository):
         query_params = {}
         if filters:
             query_fragments = []
-            # check filter is type of multi-dictionary
-            if isinstance(filters, MultiDict):
-                # iterate each key
-                for key in filters.keys():
-                    values = filters.getlist(key)
-                    # check values count
-                    if len(values) > 1:
-                        in_params = []
-                        # iterate values
-                        for index, value in enumerate(values):
-                            unique_key = f'{key}_{index}'
-                            in_params.append(f'%({unique_key})s')
-                            query_params[unique_key] = value
-
-                        query_fragments.append(f'{key} IN ({", ".join(in_params)})')
-                    else:
-                        unique_key = f'{key}_0'
-                        operator = operators.get(key) if operators.get(key, None) else '='
-                        query_fragments.append(f'{key}{operator}%({unique_key})s')
-                        query_params[unique_key] = values[0]
-
-            # check filters is type of mapping
-            elif isinstance(filters, Mapping):
+            # check filters is type of mapping (list values are expanded into an IN clause)
+            if isinstance(filters, Mapping):
                 # iterate each item of filters
                 for index, (key, value) in enumerate(filters.items()):
                     # check value is type of list
@@ -81,7 +58,7 @@ class ClassicalRepository(AbstractRepository):
                         query_fragments.append(f'{key}{operator}%({key})s')
                         query_params[key] = value
             else:
-                raise ValueError('The "query_params" must be either dictionary or MultiDict!')
+                raise ValueError('The "query_params" must be a dictionary!')
             filter_clause = f' {connector} '.join(query_fragments)
 
         # return response

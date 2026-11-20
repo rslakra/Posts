@@ -9,6 +9,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from blog.v1 import blog_router
+from rest.base import BaseRouter
 
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="webapp/templates")
@@ -31,5 +32,7 @@ async def create_get(request: Request):
 
 @blog_router.post("/create")
 async def create_post(request: Request):
-    await request.json()
+    # accepts both HTML form submissions and JSON payloads.
+    payload = await BaseRouter.payload_or_none(request) or {}
+    logger.debug(f"create_post payload_keys={list(payload.keys())}")
     return RedirectResponse(url="/blogs/", status_code=303)

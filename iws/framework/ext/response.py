@@ -1,19 +1,11 @@
 #
 # Author: Rohtash Lakra
 #
-from werkzeug.wrappers.response import Response
+from fastapi.responses import JSONResponse
 
 
-class JsonResponse(Response):
+class JsonResponse(JSONResponse):
     """Custom JSON Response"""
 
     # set default mime-type of all requests.
-    default_mimetype = "application/json; charset=utf-8"
-
-    # @classmethod
-    # def force_type(cls, response, environ=None):
-    #     """Enforce that the WSGI response is a response object of the current type."""
-    #     if isinstance(response, dict):
-    #         response = jsonify(response)
-    #
-    #     return super(JsonResponse, cls).force_type(response, environ)
+    media_type = "application/json; charset=utf-8"

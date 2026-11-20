@@ -2,6 +2,7 @@
 # Author: Rohtash Lakra
 #
 import json
+import logging
 import time
 
 from fastapi import Request, UploadFile, File
@@ -9,7 +10,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from post.v1 import post_router
+from rest.base import BaseRouter
 
+logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="webapp/templates")
 
 
@@ -33,7 +36,9 @@ async def create_get(request: Request):
 
 @post_router.post("/create")
 async def create_post(request: Request):
-    await request.json()
+    # accepts both HTML form submissions and JSON payloads.
+    payload = await BaseRouter.payload_or_none(request) or {}
+    logger.debug(f"create_post payload_keys={list(payload.keys())}")
     return RedirectResponse(url="/posts/", status_code=303)
 
 

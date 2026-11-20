@@ -8,14 +8,12 @@
 
 import json
 import logging
+import os
 import re
+from contextvars import ContextVar
 from copy import deepcopy
 from sys import stdout
-
-import requests
-from flask import Flask, g, has_request_context, request
-from flask.logging import default_handler
-from flask_log_request_id import RequestID, RequestIDLogFilter
+from typing import Optional
 
 from framework.enums.base import KeyEnum
 from framework.enums.env_type import EnvType
@@ -33,6 +31,23 @@ DATE_FORMAT_MSEC = "%Y-%m-%d %H:%M:%S.%f,%03d"
 # init logger
 logger = logging.getLogger(__name__)
 
+# Request-scoped id shared by the request-id middleware and the log formatters/filters.
+REQUEST_ID_KEY = "request_id"
+request_id_context: ContextVar[Optional[str]] = ContextVar(REQUEST_ID_KEY, default=None)
+
+
+def get_request_id() -> Optional[str]:
+    """Returns the id of the request being served by the current context, if any."""
+    return request_id_context.get()
+
+
+class RequestIDLogFilter(logging.Filter):
+    """Adds the current request id to every log record as 'request_id' (empty outside a request)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = get_request_id() or ""
+        return True
+
 
 def setup_logger(level: int = LOG_LEVEL) -> None:
     """Configure the global project logging policy in one place."""
@@ -44,6 +59,15 @@ def setup_logger(level: int = LOG_LEVEL) -> None:
     )
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
+
+    # Production writes to a log file in addition to the console.
+    if EnvType.is_production(EnvType.get_env_type()):
+        logFileName = os.getenv(KeyEnum.LOG_FILE_NAME.name, "iws.log").strip("'\"")
+        logFileHandler = logging.FileHandler(logFileName, encoding=UTF_8)
+        logFileHandler.setFormatter(LogJSONFormatter(fmt=DETAILED_LOG_FORMAT))
+        logFileHandler.addFilter(RequestIDLogFilter())
+        logFileHandler.addFilter(SensitiveDataFilter())
+        root_logger.addHandler(logFileHandler)
 
     # Keep framework/service loggers aligned with the root logger.
     for logger_name in ("framework", "api", "rest", "webapp", "main"):
@@ -125,59 +149,10 @@ class SensitiveDataFilter(logging.Filter):
 
 
 class DefaultLogger(logging.LoggerAdapter):
-    """Default logger for an application that handles displaying debugging data for critical errors, when 'extra' arg
-    is passed and contains 'debug_data' in dict.
-    """
+    """Default logger adapter that appends 'debug_data' (when passed via the 'extra' arg) to the log message."""
 
-    def __init__(self, app=None, level: int = LOG_LEVEL, extra={}):
-        self.app = app
-        app.logger.setLevel(level)
-        super().__init__(app.logger, extra)
-        # Setup default logging
-        # https://pypi.org/project/Flask-3-Log-Request-ID/
-        RequestID(app)
-
-        # Adding also the gunicorn handlers to the app.logger
-        gunicorn_logger = logging.getLogger('gunicorn.error')
-        app.logger.debug(f"app.logger.handlers={app.logger.handlers}")
-        app.logger.debug(f"gunicorn_logger.handlers={gunicorn_logger.handlers}")
-        app.logger.handlers = gunicorn_logger.handlers
-        # for handler in gunicorn_logger.handlers:
-        #     app.logger.info(f"handler={handler}")
-        #     app.logger.addHandler(handler)
-
-        # keep lower logger level
-        app.logger.debug(f"app.logger.level={app.logger.level}, gunicorn_logger.level={gunicorn_logger.level}")
-        if app.logger.getEffectiveLevel() < gunicorn_logger.level:
-            app.logger.info(f"Using gunicorn_logger.level={gunicorn_logger.level}")
-            app.logger.setLevel(gunicorn_logger.level)
-
-        # Use custom loggers instead
-        app.logger.debug(f"default_handler={default_handler}")
-        app.logger.removeHandler(default_handler)
-
-        # update log handlers with customer json formatter
-        for handler in app.logger.handlers:
-            # all log formatter and request-id filter
-            handler.setFormatter(LogJSONFormatter(fmt=DETAILED_LOG_FORMAT))
-            handler.addFilter(RequestIDLogFilter())
-            handler.addFilter(SensitiveDataFilter())
-
-    def logConfig(self):
-        logger.debug("logConfig()")
-        # logger = self.app.logger
-        # register logger here root logger
-        if EnvType.is_production(EnvType.get_env_type()):
-            logFileName = self.app.get_env(KeyEnum.LOG_FILE_NAME.name)
-            logFileHandler = logging.FileHandler(logFileName)
-            logger.debug(f"logFileName={logFileName}, logFileHandler=[{logFileHandler}]")
-            # set format and filters
-            logFileHandler.setFormatter(LogJSONFormatter(fmt=DETAILED_LOG_FORMAT))
-            logFileHandler.addFilter(RequestIDLogFilter())
-            logFileHandler.addFilter(SensitiveDataFilter())
-            # logging.getLogger().addHandler(logFileHandler)
-            logging.basicConfig(filename=logFileName, encoding=UTF_8, level=LOG_LEVEL, format=DETAILED_LOG_FORMAT)
-            requests.packages.urllib3.add_stderr_logger()
+    def __init__(self, log: logging.Logger = None, extra: dict = None):
+        super().__init__(log or logging.getLogger(), extra or {})
 
     def process(self, msg, kwargs):
         extra = kwargs.get('extra', {})
@@ -253,36 +228,19 @@ class LogJSONFormatter(logging.Formatter):
 
         log_message = f'[{self.formatTime(record, DATE_FORMAT_MSEC)}] [{record.process}] [{record.levelname}]'
 
-        if has_request_context() and hasattr(g, 'log_request_id'):
-            log_message += f' [{g.log_request_id}]'
+        request_id = get_request_id()
+        if request_id:
+            log_message += f' [{request_id}]'
 
         try:
             if hasattr(record, 'extra_info'):
+                # The request body/headers are not available outside of the ASGI request scope, so the request id
+                # is the only request related data included here.
                 log_record = {
                     'message': message,
-                    'endpoint': request.full_path if request else None,
+                    'request_id': request_id,
+                    'user_id': getattr(record, 'user_id', None),
                 }
-                # Must use try/except otherwise tests fail
-                try:
-                    # Attempt to capture request payload
-                    log_record['request_payload'] = request.get_json() if request.is_json else request.get_data(
-                        as_text=True)
-                except Exception as ex:
-                    logger.error(f"Log formatting error={ex}")
-                    # Fallback if the request body can't be accessed
-                    log_record['request_payload'] = None
-
-                # If a request context is active, capture user and session info
-                if has_request_context():
-                    if request:
-                        log_record['headers'] = {k: v for k, v in dict(request.headers).items() if
-                                                 not k.startswith("Cloudfront")}
-                    # Add request-related data
-                    log_record.update({
-                        'user_id': g.user_security.get('user_id') if hasattr(g, 'user_security') else None,
-                        'session_id': g.get('user_session_id'),
-                        'platform': g.user_agent.get('platform') if hasattr(g, 'user_agent') else None
-                    })
 
                 if isinstance(record.extra_info, dict) and record.extra_info:
                     # only if the user_id is present in the log_record will personal information be masked
