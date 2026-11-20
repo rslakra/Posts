@@ -2,6 +2,10 @@
 #Specifies the Python base image.
 FROM python:3.12-slim
 
+# Marks the images built for this project, so that 'make clean' (Enterprise/Posts/Makefile) can find and remove the
+# stale (dangling) ones without touching the images of other projects.
+LABEL project="posts-iws"
+
 # Arguments
 ARG APP_ENV=develop
 ARG API_ENV=develop

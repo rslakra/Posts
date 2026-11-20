@@ -79,7 +79,7 @@ GIT_SHORT_COMMIT=${GIT_COMMIT:0:8}
 #
 # .PHONY defines parts of the makefile that are not dependant on any specific file
 # This is most often used to store functions
-.PHONY: help start stop status db-up db-down
+.PHONY: help clean clean-images start stop status db-up db-down
 # .PHONY: help Makefile
 
 # Defines the default target that `make` will to try to make, or in the case of a phony target, execute the specified
@@ -132,9 +132,9 @@ help:
 #
 
 # In this context, the *.project pattern means "anything that has the .project extension"
-clean: ## Remove build and cache files
-clean:
-	@# Help: Remove build and cache files
+clean: ## Remove build and cache files and the docker images (created and stale) of this project
+clean: clean-images
+	@# Help: Remove build and cache files and the docker images (created and stale) of this project
 	@echo "Cleaning up ..."
 	#$(VENV)/bin/deactivate
 	#deactivate
@@ -142,6 +142,31 @@ clean:
 	rm -rf $(REMOVE_FILES) *.project
 	find . -name '*.py[co]' -delete
 	find . -type f -name '*.py[co]' -delete
+
+# Removes the docker images of this project:
+# - the app container (it uses the image) and all the images of '$(DOCKER_CONTAINER_NAME)' (every tag), and
+# - the stale (dangling, '<none>') images that were left over by rebuilding it. They are found via the 'project' label
+#   of the Dockerfile, so the images of other projects are never touched.
+# The MySQL container/volume (data) and the pulled 'mysql' image are NOT removed. Skipped when Docker isn't running.
+clean-images: ## Remove the docker images (created and stale) of this project
+	@# Help: Remove the docker images (created and stale) of this project
+	@if ! docker info >/dev/null 2>&1; then \
+		echo "Docker is not running, skipping the removal of the docker images."; \
+		exit 0; \
+	fi; \
+	if docker container inspect $(DOCKER_CONTAINER_NAME) >/dev/null 2>&1; then \
+		echo "Removing container [$(DOCKER_CONTAINER_NAME)] that uses the image ..."; \
+		docker rm -f $(DOCKER_CONTAINER_NAME) >/dev/null; \
+	fi; \
+	IMAGES=$$(docker images -q $(DOCKER_CONTAINER_NAME) | sort -u); \
+	if [ -n "$$IMAGES" ]; then \
+		echo "Removing the images of [$(DOCKER_CONTAINER_NAME)] ..."; \
+		docker image rm -f $$IMAGES; \
+	else \
+		echo "No images of [$(DOCKER_CONTAINER_NAME)] found."; \
+	fi; \
+	echo "Removing the stale (dangling) images of [$(PROJECT_NAME)] ..."; \
+	docker image prune -f --filter "label=project=$(PROJECT_NAME)"
 
 
 #
@@ -315,7 +340,12 @@ test:
 	@echo "Testing Python Application ..."
 	@# ENV_TYPE=test selects '.env.test', so the tests never touch the development database.
 	@ENV_TYPE=test $(PYTHON) -m unittest
-	@ENV_TYPE=test $(PYTHON) -m pytest
+	@# pytest is optional (not part of requirements.txt), the unittest run above already executes all the tests.
+	@if $(PYTHON) -c "import pytest" >/dev/null 2>&1; then \
+		ENV_TYPE=test $(PYTHON) -m pytest; \
+	else \
+		echo "pytest is not installed, skipping the pytest run."; \
+	fi
 	-#find coverage/ -mindepth 1 -delete
 #	pytest $${TESTS}
 #	@$(PYTHON) setup.py sdist

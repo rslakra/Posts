@@ -186,7 +186,13 @@ make status             # shows the status (state, ports, health) of the DB and 
 
 make db-up              # starts the MySQL container (waits until it accepts connections)
 make db-down            # stops and removes the MySQL container (the data volume is kept)
+
+make clean              # removes the app container + images (created and stale) of this project, the venv and caches
+make clean-images       # only the docker part of 'make clean'
 ```
+
+`make clean` never touches the MySQL container, its `mysql-docker-data` volume (your data) or the pulled `mysql` image.
+Stale images are found via the `project="posts-iws"` label of the `Dockerfile`, so other projects' images are not removed.
 
 - The app is available on http://localhost:8080 (docs: http://localhost:8080/docs). Override with `HOST_PORT=<port>`.
 - The MySQL container is published on `localhost:3306` (override with `MYSQL_HOST_PORT=<port>`). To run the app locally
